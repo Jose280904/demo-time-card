@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Demo Timecard</title>
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <link rel="icon" type="image/jpeg" href="images/your-logo.jpg?v=2" />
+  <link rel="apple-touch-icon" href="images/your-logo.jpg?v=2" />
+
+  <meta name="theme-color" content="#111111" />
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Demo Timecard" />
+</head>
+
+<body>
+  <button id="settingsIconBtn" class="settings-icon hidden" title="Account Settings">👤</button>
+  <button id="adminPunchEditorBtn" class="admin-edit-icon hidden" title="Edit Employee Punches">✏️ Edit</button>
+
+  <header class="site-header">
+    <img src="images/your-logo.jpg" alt="Company Logo" class="logo" />
+  </header>
+
+  <main class="app-layout employee-only">
+    <section class="left-panel">
+      <section id="authBox" class="card">
+        <h2>Login</h2>
+        <p class="muted">Enter your email and password.</p>
+
+        <input id="email" type="email" placeholder="Email" />
+
+        <div class="password-row">
+          <input id="password" type="password" placeholder="Password" />
+          <button id="showPasswordBtn" type="button" class="show-btn">Show</button>
+        </div>
+
+        <button id="loginBtn">Login</button>
+        <button id="openSignupBtn" class="outline-btn">Create Account</button>
+        <p id="forgotPasswordLink" class="forgot-password">Forgot password?</p>
+        <p class="spam-note">Check your spam or junk folder if you do not see the reset email.</p>
+      </section>
+
+      <section id="signupBox" class="card hidden">
+        <h2>Create Account</h2>
+        <p class="muted">New users need to enter their name once.</p>
+
+        <input id="signupName" type="text" placeholder="Full Name" />
+        <input id="signupEmail" type="email" placeholder="Email" />
+
+        <div class="password-row">
+          <input id="signupPassword" type="password" placeholder="Password" />
+          <button id="showSignupPasswordBtn" type="button" class="show-btn">Show</button>
+        </div>
+
+        <div class="password-row">
+          <input id="confirmPassword" type="password" placeholder="Confirm Password" />
+          <button id="showConfirmPasswordBtn" type="button" class="show-btn">Show</button>
+        </div>
+
+        <button id="signupBtn">Create Account</button>
+        <button id="backToLoginBtn" class="outline-btn">Back to Login</button>
+      </section>
+
+      <section id="clockBox" class="card hidden">
+        <h2 id="welcomeText">Welcome</h2>
+        <p class="muted">Have a great day!</p>
+
+        <div class="clock-actions">
+          <button id="clockInBtn">🟢 Clock In</button>
+          <button id="startLunchBtn">🍔 Start Lunch</button>
+          <button id="endLunchBtn">🔙 End Lunch</button>
+          <button id="clockOutBtn">🔴 Clock Out</button>
+        </div>
+
+        <button id="logoutBtn" class="outline-btn">↪ Logout</button>
+      </section>
+
+      <section id="signatureBox" class="card hidden">
+        <h2>Weekly E-Signature</h2>
+        <p class="muted">Sign once per week to confirm your time records.</p>
+
+        <div id="signatureStatus" class="info-box">
+          Checking signature status...
+        </div>
+
+        <label for="signatureInput">Type your full name:</label>
+        <input id="signatureInput" type="text" placeholder="Full Name" />
+
+        <button id="submitSignatureBtn">Submit Weekly Signature</button>
+      </section>
+
+      <section id="timeEditBox" class="card hidden">
+        <h2>Time Edit Request</h2>
+        <p class="muted">Forgot to clock in, lunch, or clock out? Submit a request for admin approval.</p>
+
+        <label for="editDate">Date:</label>
+        <input id="editDate" type="date" />
+
+        <label for="editTime">Time:</label>
+        <input id="editTime" type="time" />
+
+        <label for="editType">Punch Type:</label>
+        <select id="editType">
+          <option value="Clock In">Clock In</option>
+          <option value="Start Lunch">Start Lunch</option>
+          <option value="End Lunch">End Lunch</option>
+          <option value="Clock Out">Clock Out</option>
+        </select>
+
+        <label for="editReason">Reason:</label>
+        <textarea id="editReason" placeholder="Example: I forgot to clock in when I arrived onsite."></textarea>
+
+        <button id="submitTimeEditBtn">Submit Request</button>
+
+        <div id="myTimeEditRequests">
+          <p class="info-box">No time edit requests loaded yet.</p>
+        </div>
+      </section>
+
+      <section id="signatureAdminBox" class="admin-request-section hidden">
+        <h2>Weekly Signatures</h2>
+        <p class="muted">View employees who have signed for the selected week.</p>
+
+        <button id="loadWeeklySignaturesBtn">Load Weekly Signatures</button>
+
+        <div id="weeklySignatures">
+          <p class="info-box">No signatures loaded yet.</p>
+        </div>
+      </section>
+
+      <section id="myHistoryBox" class="card hidden">
+        <h2>My Punch History</h2>
+        <p class="muted">View your own weekly punch records.</p>
+
+        <label for="myWeekPicker">Choose Week:</label>
+        <input id="myWeekPicker" type="week" />
+
+        <button id="loadMyHistoryBtn">Load My History</button>
+
+        <div id="myHistoryRecords">
+          <p class="info-box">No history loaded yet.</p>
+        </div>
+      </section>
+    </section>
+
+    <section id="adminBox" class="right-panel hidden">
+      <h2>Admin Dashboard</h2>
+      <p class="muted">View employee time clock records.</p>
+
+      <label for="weekPicker">Choose Week:</label>
+      <input id="weekPicker" type="week" />
+
+      <button id="loadRecordsBtn">Load Weekly Records</button>
+
+      <div id="records">
+        <p class="info-box">No records loaded yet.</p>
+      </div>
+
+      <section class="admin-request-section">
+        <h2>Time Edit Approvals</h2>
+        <p class="muted">Approve or reject employee time edit requests.</p>
+
+        <button id="loadTimeEditRequestsBtn">Load Pending Requests</button>
+
+        <div id="timeEditRequests">
+          <p class="info-box">No pending requests loaded yet.</p>
+        </div>
+      </section>
+
+      <p class="footer-note">Demo Timecard · All times are local.</p>
+    </section>
+  </main>
+
+  <div id="settingsModal" class="modal hidden">
+    <div class="modal-card">
+      <button id="closeSettingsBtn" class="close-btn">×</button>
+
+      <h2>Account Settings</h2>
+      <p class="muted">Update your name or reset your password.</p>
+
+      <input id="settingsName" type="text" placeholder="Update your full name" />
+
+      <button id="saveNameBtn">Save Name</button>
+      <button id="resetPasswordBtn" class="outline-btn">Send Password Reset Email</button>
+    </div>
+  </div>
+
+  <div id="adminPunchModal" class="modal hidden">
+    <div class="modal-card wide-modal">
+      <button id="closeAdminPunchBtn" class="close-btn">×</button>
+
+      <h2>Edit Employee Punches</h2>
+      <p class="muted">Choose a week, then edit or delete employee punches.</p>
+
+      <label for="adminEditWeekPicker">Choose Week:</label>
+      <input id="adminEditWeekPicker" type="week" />
+
+      <button id="loadAdminPunchesBtn">Load Punches</button>
+
+      <div id="adminPunchEditorRecords">
+        <p class="info-box">No punches loaded yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="editPunchModal" class="modal hidden">
+    <div class="modal-card">
+      <button id="closeEditPunchBtn" class="close-btn">×</button>
+
+      <h2>Edit Punch</h2>
+      <p class="muted">Modify the employee punch below.</p>
+
+      <input id="editingPunchId" type="hidden" />
+
+      <label for="adminEditPunchDate">Date:</label>
+      <input id="adminEditPunchDate" type="date" />
+
+      <label for="adminEditPunchTime">Time:</label>
+      <input id="adminEditPunchTime" type="time" />
+
+      <label for="adminEditPunchType">Punch Type:</label>
+      <select id="adminEditPunchType">
+        <option value="Clock In">Clock In</option>
+        <option value="Start Lunch">Start Lunch</option>
+        <option value="End Lunch">End Lunch</option>
+        <option value="Clock Out">Clock Out</option>
+      </select>
+
+      <button id="saveEditedPunchBtn">Save Changes</button>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
