@@ -63,8 +63,9 @@ body::before {
   margin: 0 auto;
   padding: 22px;
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 26px;
+  align-items: start;
 }
 
 .employee-only {
