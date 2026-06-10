@@ -1627,12 +1627,22 @@ function escapeHTML(value) {
     .replaceAll("'", "&#039;");
 }
 
+function moveScheduleAndHistoryForUser(isAdmin) {
+  if (isAdmin) {
+    employeeLeftColumn.appendChild(myScheduleBox);
+    employeeLeftColumn.appendChild(myHistoryBox);
+  } else {
+    employeeRightPanel.appendChild(myScheduleBox);
+    employeeRightPanel.appendChild(myHistoryBox);
+  }
+}
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     authBox.classList.add("hidden");
     signupBox.classList.add("hidden");
+
     employeeLeftColumn.classList.remove("hidden");
-    employeeRightPanel.classList.remove("hidden");
     settingsIconBtn.classList.remove("hidden");
 
     clockBox.classList.remove("hidden");
@@ -1656,8 +1666,14 @@ onAuthStateChanged(auth, async (user) => {
       email.toLowerCase().trim()
     );
 
-    if (cleanAdminEmails.includes(cleanEmail)) {
+    const isCurrentUserAdmin = cleanAdminEmails.includes(cleanEmail);
+
+    if (isCurrentUserAdmin) {
       appLayout.classList.remove("employee-only");
+
+      moveScheduleAndHistoryForUser(true);
+
+      employeeRightPanel.classList.add("hidden");
       adminBox.classList.remove("hidden");
       signatureAdminBox.classList.remove("hidden");
       adminPunchEditorBtn.classList.remove("hidden");
@@ -1667,6 +1683,10 @@ onAuthStateChanged(auth, async (user) => {
       await loadAdminSchedules();
     } else {
       appLayout.classList.add("employee-only");
+
+      moveScheduleAndHistoryForUser(false);
+
+      employeeRightPanel.classList.remove("hidden");
       adminBox.classList.add("hidden");
       signatureAdminBox.classList.add("hidden");
       adminPunchEditorBtn.classList.add("hidden");
@@ -1674,12 +1694,15 @@ onAuthStateChanged(auth, async (user) => {
 
     await checkWeeklySignature();
     await loadMySchedule();
+    await loadMyHistory();
     await loadMyTimeEditRequests();
   } else {
     authBox.classList.remove("hidden");
     signupBox.classList.add("hidden");
+
     employeeLeftColumn.classList.add("hidden");
     employeeRightPanel.classList.add("hidden");
+
     clockBox.classList.add("hidden");
     myScheduleBox.classList.add("hidden");
     myHistoryBox.classList.add("hidden");
@@ -1687,11 +1710,13 @@ onAuthStateChanged(auth, async (user) => {
     signatureBox.classList.add("hidden");
     signatureAdminBox.classList.add("hidden");
     adminBox.classList.add("hidden");
+
     settingsIconBtn.classList.add("hidden");
     settingsModal.classList.add("hidden");
     adminPunchEditorBtn.classList.add("hidden");
     adminPunchModal.classList.add("hidden");
     editPunchModal.classList.add("hidden");
+
     appLayout.classList.add("employee-only");
 
     currentUserName = "";

@@ -68,19 +68,28 @@ body::before {
   align-items: start;
 }
 
-/* Employee view: left side employee tools, right side schedule/history */
-.employee-only {
-  display: grid !important;
-  grid-template-columns: 1fr 1fr;
+/* Employee view: one big panel split inside into left/right */
+.app-layout.employee-only {
+  grid-template-columns: 1fr;
 }
 
-.employee-only .left-panel,
-.employee-only .employee-right-panel {
+.app-layout.employee-only .left-panel {
   width: 100%;
-  max-width: none;
+  max-width: 1500px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 26px;
+  align-items: start;
 }
 
-.employee-column {
+/* Admin view: left side stacks employee tools + schedule/history */
+.app-layout:not(.employee-only) .left-panel {
+  display: block;
+}
+
+.employee-column,
+.employee-right-panel {
   width: 100%;
 }
 
@@ -101,7 +110,7 @@ body::before {
 }
 
 .employee-right-panel {
-  min-height: 620px;
+  min-height: auto;
 }
 
 .card {
@@ -656,11 +665,7 @@ button.secondary {
 }
 
 #myTimeEditRequests::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    180deg,
-    #9ca3af,
-    #2f2f2f
-  );
+  background: linear-gradient(180deg, #9ca3af, #2f2f2f);
   border-radius: 999px;
 }
 
@@ -680,17 +685,13 @@ button.secondary {
   }
 
   .app-layout,
-  .employee-only {
+  .app-layout.employee-only,
+  .app-layout.employee-only .left-panel {
     grid-template-columns: 1fr;
     gap: 22px;
   }
 
-  .employee-only {
-    display: grid !important;
-  }
-
-  .employee-only .left-panel,
-  .employee-only .employee-right-panel,
+  .app-layout.employee-only .left-panel,
   .left-panel,
   .right-panel {
     width: 100%;
