@@ -69,13 +69,18 @@ body::before {
 }
 
 .employee-only {
-  display: flex !important;
-  justify-content: center;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
 }
 
-.employee-only .left-panel {
+.employee-only .left-panel,
+.employee-only .employee-right-panel {
   width: 100%;
-  max-width: 700px;
+  max-width: none;
+}
+
+.employee-column {
+  width: 100%;
 }
 
 .left-panel,
@@ -97,9 +102,17 @@ body::before {
   min-height: 620px;
 }
 
+.employee-right-panel {
+  min-height: 620px;
+}
+
 .card {
   padding: 28px;
   margin-bottom: 20px;
+}
+
+.card:last-child {
+  margin-bottom: 0;
 }
 
 h1,
@@ -307,7 +320,9 @@ button.secondary {
 
 #records,
 #timeEditRequests,
-#myTimeEditRequests {
+#myTimeEditRequests,
+#myScheduleRecords,
+#adminScheduleRecords {
   margin-top: 20px;
 }
 
@@ -334,7 +349,8 @@ button.secondary {
 
 .employee-card,
 .request-card,
-.admin-punch-row {
+.admin-punch-row,
+.schedule-card {
   background: white;
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -344,14 +360,16 @@ button.secondary {
 }
 
 .employee-card h3,
-.request-card h3 {
+.request-card h3,
+.schedule-card h3 {
   font-size: 22px;
   margin-bottom: 12px;
   color: var(--black);
 }
 
 .request-card p,
-.admin-punch-row p {
+.admin-punch-row p,
+.schedule-card p {
   margin-bottom: 8px;
 }
 
@@ -397,6 +415,12 @@ button.secondary {
   margin-top: 34px;
   padding-top: 26px;
   border-top: 1px solid #d8dadd;
+}
+
+.no-top-border {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
 }
 
 .week-table {
@@ -589,22 +613,25 @@ button.secondary {
     padding-top: 22px;
   }
 
-  .app-layout {
+  .app-layout,
+  .employee-only {
     grid-template-columns: 1fr;
     gap: 22px;
   }
 
   .employee-only {
-    display: flex !important;
-    justify-content: center;
+    display: grid !important;
   }
 
-  .employee-only .left-panel {
+  .employee-only .left-panel,
+  .employee-only .employee-right-panel {
     width: 100%;
     max-width: 650px;
+    margin: 0 auto;
   }
 
-  .left-panel {
+  .left-panel,
+  .employee-right-panel {
     min-height: auto;
   }
 

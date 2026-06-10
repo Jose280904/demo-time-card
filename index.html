@@ -66,70 +66,88 @@
         <button id="backToLoginBtn" class="outline-btn">Back to Login</button>
       </section>
 
-      <section id="clockBox" class="card hidden">
-        <h2 id="welcomeText">Welcome</h2>
-        <p class="muted">Have a great day!</p>
+      <div id="employeeLeftColumn" class="employee-column hidden">
+        <section id="clockBox" class="card hidden">
+          <h2 id="welcomeText">Welcome</h2>
+          <p class="muted">Have a great day!</p>
 
-        <div class="clock-actions">
-          <button id="clockInBtn">🟢 Clock In</button>
-          <button id="startLunchBtn">🍔 Start Lunch</button>
-          <button id="endLunchBtn">🔙 End Lunch</button>
-          <button id="clockOutBtn">🔴 Clock Out</button>
-        </div>
+          <div class="clock-actions">
+            <button id="clockInBtn">🟢 Clock In</button>
+            <button id="startLunchBtn">🍔 Start Lunch</button>
+            <button id="endLunchBtn">🔙 End Lunch</button>
+            <button id="clockOutBtn">🔴 Clock Out</button>
+          </div>
 
-        <button id="logoutBtn" class="outline-btn">↪ Logout</button>
-      </section>
+          <button id="logoutBtn" class="outline-btn">↪ Logout</button>
+        </section>
 
-      <section id="signatureBox" class="card hidden">
-        <h2>Weekly E-Signature</h2>
-        <p class="muted">Sign once per week to confirm your time records.</p>
+        <section id="signatureBox" class="card hidden">
+          <h2>Weekly E-Signature</h2>
+          <p class="muted">Sign once per week to confirm your time records.</p>
 
-        <div id="signatureStatus" class="info-box">
-          Checking signature status...
-        </div>
+          <div id="signatureStatus" class="info-box">
+            Checking signature status...
+          </div>
 
-        <label for="signatureInput">Type your full name:</label>
-        <input id="signatureInput" type="text" placeholder="Full Name" />
+          <label for="signatureInput">Type your full name:</label>
+          <input id="signatureInput" type="text" placeholder="Full Name" />
 
-        <button id="submitSignatureBtn">Submit Weekly Signature</button>
-      </section>
+          <button id="submitSignatureBtn">Submit Weekly Signature</button>
+        </section>
 
-      <section id="timeEditBox" class="card hidden">
-        <h2>Time Edit Request</h2>
-        <p class="muted">Forgot to clock in, lunch, or clock out? Submit a request for admin approval.</p>
+        <section id="timeEditBox" class="card hidden">
+          <h2>Time Edit Request</h2>
+          <p class="muted">Forgot to clock in, lunch, or clock out? Submit a request for admin approval.</p>
 
-        <label for="editDate">Date:</label>
-        <input id="editDate" type="date" />
+          <label for="editDate">Date:</label>
+          <input id="editDate" type="date" />
 
-        <label for="editTime">Time:</label>
-        <input id="editTime" type="time" />
+          <label for="editTime">Time:</label>
+          <input id="editTime" type="time" />
 
-        <label for="editType">Punch Type:</label>
-        <select id="editType">
-          <option value="Clock In">Clock In</option>
-          <option value="Start Lunch">Start Lunch</option>
-          <option value="End Lunch">End Lunch</option>
-          <option value="Clock Out">Clock Out</option>
-        </select>
+          <label for="editType">Punch Type:</label>
+          <select id="editType">
+            <option value="Clock In">Clock In</option>
+            <option value="Start Lunch">Start Lunch</option>
+            <option value="End Lunch">End Lunch</option>
+            <option value="Clock Out">Clock Out</option>
+          </select>
 
-        <label for="editReason">Reason:</label>
-        <textarea id="editReason" placeholder="Example: I forgot to clock in when I arrived onsite."></textarea>
+          <label for="editReason">Reason:</label>
+          <textarea id="editReason" placeholder="Example: I forgot to clock in when I arrived onsite."></textarea>
 
-        <button id="submitTimeEditBtn">Submit Request</button>
+          <button id="submitTimeEditBtn">Submit Request</button>
 
-        <div id="myTimeEditRequests">
-          <p class="info-box">No time edit requests loaded yet.</p>
-        </div>
-      </section>
+          <div id="myTimeEditRequests">
+            <p class="info-box">No time edit requests loaded yet.</p>
+          </div>
+        </section>
 
-      <section id="signatureAdminBox" class="admin-request-section hidden">
-        <h2>Weekly Signatures</h2>
-        <p class="muted">View employees who have signed for the selected week.</p>
+        <section id="signatureAdminBox" class="admin-request-section hidden">
+          <h2>Weekly Signatures</h2>
+          <p class="muted">View employees who have signed for the selected week.</p>
 
-        <button id="loadWeeklySignaturesBtn">Load Weekly Signatures</button>
+          <button id="loadWeeklySignaturesBtn">Load Weekly Signatures</button>
 
-        <div id="weeklySignatures">
-          <p class="info-box">No signatures loaded yet.</p>
+          <div id="weeklySignatures">
+            <p class="info-box">No signatures loaded yet.</p>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="employeeRightPanel" class="right-panel employee-right-panel hidden">
+      <section id="myScheduleBox" class="card">
+        <h2>My Schedule</h2>
+        <p class="muted">View your assigned schedule for the selected week.</p>
+
+        <label for="myScheduleWeekPicker">Choose Week:</label>
+        <input id="myScheduleWeekPicker" type="week" />
+
+        <button id="loadMyScheduleBtn">Load My Schedule</button>
+
+        <div id="myScheduleRecords">
+          <p class="info-box">No schedule loaded yet.</p>
         </div>
       </section>
 
@@ -150,16 +168,63 @@
 
     <section id="adminBox" class="right-panel hidden">
       <h2>Admin Dashboard</h2>
-      <p class="muted">View employee time clock records.</p>
+      <p class="muted">View employee time clock records and post schedules.</p>
 
-      <label for="weekPicker">Choose Week:</label>
-      <input id="weekPicker" type="week" />
+      <section class="admin-request-section no-top-border">
+        <h2>Post Employee Schedule</h2>
+        <p class="muted">Create a schedule entry for an employee.</p>
 
-      <button id="loadRecordsBtn">Load Weekly Records</button>
+        <label for="scheduleEmployeeEmail">Employee Email:</label>
+        <input id="scheduleEmployeeEmail" type="email" placeholder="employee@email.com" />
 
-      <div id="records">
-        <p class="info-box">No records loaded yet.</p>
-      </div>
+        <label for="scheduleEmployeeName">Employee Name:</label>
+        <input id="scheduleEmployeeName" type="text" placeholder="Employee Name" />
+
+        <label for="scheduleDate">Date:</label>
+        <input id="scheduleDate" type="date" />
+
+        <label for="scheduleStartTime">Start Time:</label>
+        <input id="scheduleStartTime" type="time" />
+
+        <label for="scheduleEndTime">End Time:</label>
+        <input id="scheduleEndTime" type="time" />
+
+        <label for="scheduleLocation">Location / Job Site:</label>
+        <input id="scheduleLocation" type="text" placeholder="Example: Main Office, Site A, Client Location" />
+
+        <label for="scheduleNotes">Notes:</label>
+        <textarea id="scheduleNotes" placeholder="Example: Bring tools, meet supervisor onsite, etc."></textarea>
+
+        <button id="postScheduleBtn">Post Schedule</button>
+      </section>
+
+      <section class="admin-request-section">
+        <h2>Posted Schedules</h2>
+        <p class="muted">View schedules posted for the selected week.</p>
+
+        <label for="adminScheduleWeekPicker">Choose Week:</label>
+        <input id="adminScheduleWeekPicker" type="week" />
+
+        <button id="loadAdminSchedulesBtn">Load Posted Schedules</button>
+
+        <div id="adminScheduleRecords">
+          <p class="info-box">No schedules loaded yet.</p>
+        </div>
+      </section>
+
+      <section class="admin-request-section">
+        <h2>Weekly Records</h2>
+        <p class="muted">View employee time clock records.</p>
+
+        <label for="weekPicker">Choose Week:</label>
+        <input id="weekPicker" type="week" />
+
+        <button id="loadRecordsBtn">Load Weekly Records</button>
+
+        <div id="records">
+          <p class="info-box">No records loaded yet.</p>
+        </div>
+      </section>
 
       <section class="admin-request-section">
         <h2>Time Edit Approvals</h2>
