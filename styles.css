@@ -68,15 +68,16 @@ body::before {
   align-items: start;
 }
 
+/* Employee view: left side employee tools, right side schedule/history */
 .employee-only {
   display: grid !important;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
 }
 
-.employee-only .left-panel {
+.employee-only .left-panel,
+.employee-only .employee-right-panel {
   width: 100%;
-  max-width: 760px;
-  margin: 0 auto;
+  max-width: none;
 }
 
 .employee-column {
@@ -96,10 +97,10 @@ body::before {
 .left-panel,
 .right-panel {
   padding: 28px;
+  min-height: 620px;
 }
 
-.left-panel,
-.right-panel {
+.employee-right-panel {
   min-height: 620px;
 }
 
@@ -424,7 +425,8 @@ button.secondary {
 .schedule-week-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
+  gap: 12px;
+  margin-top: 20px;
 }
 
 .schedule-day-btn {
@@ -437,11 +439,14 @@ button.secondary {
   border: 2px solid #d8dadd;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
   text-align: left;
+  cursor: pointer;
+  transition: 0.2s ease;
 }
 
 .schedule-day-btn:hover {
   border-color: var(--black);
   filter: none;
+  transform: translateY(-2px);
 }
 
 .schedule-day-btn strong {
@@ -685,6 +690,7 @@ button.secondary {
   }
 
   .employee-only .left-panel,
+  .employee-only .employee-right-panel,
   .left-panel,
   .right-panel {
     width: 100%;

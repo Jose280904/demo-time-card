@@ -53,12 +53,15 @@ const settingsName = document.getElementById("settingsName");
 const weekPicker = document.getElementById("weekPicker");
 const settingsIconBtn = document.getElementById("settingsIconBtn");
 const settingsModal = document.getElementById("settingsModal");
+
+const employeeLeftColumn = document.getElementById("employeeLeftColumn");
+const employeeRightPanel = document.getElementById("employeeRightPanel");
+
 const myHistoryBox = document.getElementById("myHistoryBox");
 const myWeekPicker = document.getElementById("myWeekPicker");
 const myHistoryRecords = document.getElementById("myHistoryRecords");
 
-const employeeLeftColumn = document.getElementById("employeeLeftColumn");
-
+const myScheduleBox = document.getElementById("myScheduleBox");
 const myScheduleWeekPicker = document.getElementById("myScheduleWeekPicker");
 const loadMyScheduleBtn = document.getElementById("loadMyScheduleBtn");
 const myScheduleRecords = document.getElementById("myScheduleRecords");
@@ -231,6 +234,22 @@ buildScheduleWeekBtn.addEventListener("click", () => {
   buildScheduleWeekGrid();
 });
 
+scheduleWeekGrid.addEventListener("click", (event) => {
+  const dayButton = event.target.closest(".schedule-day-btn");
+
+  if (!dayButton) return;
+
+  document.querySelectorAll(".schedule-day-btn").forEach((button) => {
+    button.classList.remove("active-day");
+  });
+
+  dayButton.classList.add("active-day");
+
+  scheduleDate.value = dayButton.dataset.date;
+  selectedScheduleDayTitle.textContent = `${dayButton.dataset.day} · ${dayButton.dataset.display}`;
+  selectedScheduleDayBox.classList.remove("hidden");
+});
+
 document.getElementById("signupBtn").addEventListener("click", async () => {
   const name = document.getElementById("signupName").value.trim();
   const email = document.getElementById("signupEmail").value.trim().toLowerCase();
@@ -380,6 +399,14 @@ function buildScheduleWeekGrid() {
     return;
   }
 
+  const employeeEmail = scheduleEmployeeEmail.value.trim().toLowerCase();
+  const employeeName = scheduleEmployeeName.value.trim();
+
+  if (!employeeEmail || !employeeName) {
+    alert("Enter the employee email and employee name first.");
+    return;
+  }
+
   const { startOfWeek } = getWeekDateRange(selectedWeek);
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -414,22 +441,6 @@ function buildScheduleWeekGrid() {
   selectedScheduleDayBox.classList.add("hidden");
 }
 
-scheduleWeekGrid.addEventListener("click", (event) => {
-  const dayButton = event.target.closest(".schedule-day-btn");
-
-  if (!dayButton) return;
-
-  document.querySelectorAll(".schedule-day-btn").forEach((button) => {
-    button.classList.remove("active-day");
-  });
-
-  dayButton.classList.add("active-day");
-
-  scheduleDate.value = dayButton.dataset.date;
-  selectedScheduleDayTitle.textContent = `${dayButton.dataset.day} · ${dayButton.dataset.display}`;
-  selectedScheduleDayBox.classList.remove("hidden");
-});
-
 async function postEmployeeSchedule() {
   const adminUser = auth.currentUser;
 
@@ -444,7 +455,7 @@ async function postEmployeeSchedule() {
   const notesValue = scheduleNotes.value.trim();
 
   if (!employeeEmail || !employeeName || !dateValue || !startTimeValue || !endTimeValue) {
-    alert("Choose a day and enter employee email, employee name, start time, and end time.");
+    alert("Enter employee email, employee name, choose a day, start time, and end time.");
     return;
   }
 
@@ -459,8 +470,8 @@ async function postEmployeeSchedule() {
     const weekValue = getWeekValueFromDate(scheduleDateObj);
 
     await addDoc(collection(db, "schedules"), {
-      employeeEmail: employeeEmail,
-      employeeName: employeeName,
+      employeeEmail,
+      employeeName,
       date: dateValue,
       startTime: startTimeValue,
       endTime: endTimeValue,
@@ -478,7 +489,7 @@ async function postEmployeeSchedule() {
     scheduleLocation.value = "";
     scheduleNotes.value = "";
 
-    alert("Schedule posted.");
+    alert("Schedule posted for this day. You can click another day and keep using the same employee info.");
 
     adminScheduleWeekPicker.value = weekValue;
     await loadAdminSchedules();
@@ -602,21 +613,20 @@ async function loadWeeklyRecords() {
       if (dateObj < startOfWeek || dateObj >= endOfWeek) return;
 
       const cleanEmail = data.employeeEmail.toLowerCase().trim();
-      const employeeKey = cleanEmail;
 
       const employeeName =
         employeeNamesByEmail[cleanEmail] ||
         data.employeeName ||
         cleanEmail;
 
-      if (!grouped[employeeKey]) {
-        grouped[employeeKey] = {
+      if (!grouped[cleanEmail]) {
+        grouped[cleanEmail] = {
           name: employeeName,
           days: emptyWeek()
         };
       }
 
-      addPunchToDay(grouped[employeeKey].days, data, dateObj);
+      addPunchToDay(grouped[cleanEmail].days, data, dateObj);
     });
 
     const employees = Object.values(grouped);
@@ -1515,8 +1525,7 @@ function getWeekDates(startOfWeek) {
 }
 
 function getCurrentWeekValue() {
-  const now = new Date();
-  return getWeekValueFromDate(now);
+  return getWeekValueFromDate(new Date());
 }
 
 function getWeekValueFromDate(dateObj) {
@@ -1623,9 +1632,11 @@ onAuthStateChanged(auth, async (user) => {
     authBox.classList.add("hidden");
     signupBox.classList.add("hidden");
     employeeLeftColumn.classList.remove("hidden");
+    employeeRightPanel.classList.remove("hidden");
     settingsIconBtn.classList.remove("hidden");
 
     clockBox.classList.remove("hidden");
+    myScheduleBox.classList.remove("hidden");
     myHistoryBox.classList.remove("hidden");
     timeEditBox.classList.remove("hidden");
     signatureBox.classList.remove("hidden");
@@ -1654,7 +1665,6 @@ onAuthStateChanged(auth, async (user) => {
       await loadPendingTimeEditRequests();
       await loadWeeklySignatures();
       await loadAdminSchedules();
-      buildScheduleWeekGrid();
     } else {
       appLayout.classList.add("employee-only");
       adminBox.classList.add("hidden");
@@ -1669,7 +1679,9 @@ onAuthStateChanged(auth, async (user) => {
     authBox.classList.remove("hidden");
     signupBox.classList.add("hidden");
     employeeLeftColumn.classList.add("hidden");
+    employeeRightPanel.classList.add("hidden");
     clockBox.classList.add("hidden");
+    myScheduleBox.classList.add("hidden");
     myHistoryBox.classList.add("hidden");
     timeEditBox.classList.add("hidden");
     signatureBox.classList.add("hidden");
