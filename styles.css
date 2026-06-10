@@ -70,13 +70,13 @@ body::before {
 
 .employee-only {
   display: grid !important;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
 }
 
-.employee-only .left-panel,
-.employee-only .employee-right-panel {
+.employee-only .left-panel {
   width: 100%;
-  max-width: none;
+  max-width: 760px;
+  margin: 0 auto;
 }
 
 .employee-column {
@@ -98,11 +98,8 @@ body::before {
   padding: 28px;
 }
 
-.left-panel {
-  min-height: 620px;
-}
-
-.employee-right-panel {
+.left-panel,
+.right-panel {
   min-height: 620px;
 }
 
@@ -322,7 +319,8 @@ button.secondary {
 #timeEditRequests,
 #myTimeEditRequests,
 #myScheduleRecords,
-#adminScheduleRecords {
+#adminScheduleRecords,
+#scheduleWeekGrid {
   margin-top: 20px;
 }
 
@@ -421,6 +419,64 @@ button.secondary {
   margin-top: 0;
   padding-top: 0;
   border-top: none;
+}
+
+.schedule-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+.schedule-day-btn {
+  min-height: 110px;
+  padding: 12px;
+  margin-top: 0;
+  border-radius: 14px;
+  background: white;
+  color: var(--black);
+  border: 2px solid #d8dadd;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  text-align: left;
+}
+
+.schedule-day-btn:hover {
+  border-color: var(--black);
+  filter: none;
+}
+
+.schedule-day-btn strong {
+  display: block;
+  font-size: 16px;
+  margin-bottom: 6px;
+}
+
+.schedule-day-btn span {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.schedule-day-btn.active-day {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+
+.schedule-day-btn.active-day span {
+  color: var(--silver);
+}
+
+.schedule-form-box {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f9fafb;
+  border: 1px solid #d8dadd;
+  border-radius: 14px;
+}
+
+.schedule-form-box h3 {
+  font-size: 22px;
+  margin-bottom: 8px;
 }
 
 .week-table {
@@ -585,7 +641,6 @@ button.secondary {
   border-top: 1px solid #d8dadd;
 }
 
-/* Gray demo scrollbar */
 #myTimeEditRequests::-webkit-scrollbar {
   width: 10px;
 }
@@ -608,6 +663,12 @@ button.secondary {
   background: #111111;
 }
 
+@media (max-width: 1100px) {
+  .schedule-week-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 900px) {
   .site-header {
     padding-top: 22px;
@@ -624,20 +685,18 @@ button.secondary {
   }
 
   .employee-only .left-panel,
-  .employee-only .employee-right-panel {
+  .left-panel,
+  .right-panel {
     width: 100%;
     max-width: 650px;
     margin: 0 auto;
-  }
-
-  .left-panel,
-  .employee-right-panel {
     min-height: auto;
   }
 
   .clock-actions,
   .request-actions,
-  .admin-punch-actions {
+  .admin-punch-actions,
+  .schedule-week-grid {
     grid-template-columns: 1fr;
   }
 

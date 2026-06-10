@@ -58,11 +58,16 @@ const myWeekPicker = document.getElementById("myWeekPicker");
 const myHistoryRecords = document.getElementById("myHistoryRecords");
 
 const employeeLeftColumn = document.getElementById("employeeLeftColumn");
-const employeeRightPanel = document.getElementById("employeeRightPanel");
 
 const myScheduleWeekPicker = document.getElementById("myScheduleWeekPicker");
 const loadMyScheduleBtn = document.getElementById("loadMyScheduleBtn");
 const myScheduleRecords = document.getElementById("myScheduleRecords");
+
+const adminScheduleBuilderWeekPicker = document.getElementById("adminScheduleBuilderWeekPicker");
+const buildScheduleWeekBtn = document.getElementById("buildScheduleWeekBtn");
+const scheduleWeekGrid = document.getElementById("scheduleWeekGrid");
+const selectedScheduleDayBox = document.getElementById("selectedScheduleDayBox");
+const selectedScheduleDayTitle = document.getElementById("selectedScheduleDayTitle");
 
 const scheduleEmployeeEmail = document.getElementById("scheduleEmployeeEmail");
 const scheduleEmployeeName = document.getElementById("scheduleEmployeeName");
@@ -164,85 +169,67 @@ settingsModal.addEventListener("click", (event) => {
   }
 });
 
-if (adminPunchEditorBtn) {
-  adminPunchEditorBtn.addEventListener("click", () => {
-    adminPunchModal.classList.remove("hidden");
-    adminEditWeekPicker.value = weekPicker.value || getCurrentWeekValue();
-  });
-}
+adminPunchEditorBtn.addEventListener("click", () => {
+  adminPunchModal.classList.remove("hidden");
+  adminEditWeekPicker.value = weekPicker.value || getCurrentWeekValue();
+});
 
-if (closeAdminPunchBtn) {
-  closeAdminPunchBtn.addEventListener("click", () => {
+closeAdminPunchBtn.addEventListener("click", () => {
+  adminPunchModal.classList.add("hidden");
+});
+
+adminPunchModal.addEventListener("click", (event) => {
+  if (event.target === adminPunchModal) {
     adminPunchModal.classList.add("hidden");
-  });
-}
+  }
+});
 
-if (adminPunchModal) {
-  adminPunchModal.addEventListener("click", (event) => {
-    if (event.target === adminPunchModal) {
-      adminPunchModal.classList.add("hidden");
-    }
-  });
-}
+closeEditPunchBtn.addEventListener("click", () => {
+  editPunchModal.classList.add("hidden");
+});
 
-if (closeEditPunchBtn) {
-  closeEditPunchBtn.addEventListener("click", () => {
+editPunchModal.addEventListener("click", (event) => {
+  if (event.target === editPunchModal) {
     editPunchModal.classList.add("hidden");
-  });
-}
+  }
+});
 
-if (editPunchModal) {
-  editPunchModal.addEventListener("click", (event) => {
-    if (event.target === editPunchModal) {
-      editPunchModal.classList.add("hidden");
-    }
-  });
-}
+loadAdminPunchesBtn.addEventListener("click", async () => {
+  await loadAdminPunchEditor();
+});
 
-if (loadAdminPunchesBtn) {
-  loadAdminPunchesBtn.addEventListener("click", async () => {
-    await loadAdminPunchEditor();
-  });
-}
+adminPunchEditorRecords.addEventListener("click", async (event) => {
+  const editBtn = event.target.closest(".admin-edit-punch-btn");
+  const deleteBtn = event.target.closest(".admin-delete-punch-btn");
 
-if (adminPunchEditorRecords) {
-  adminPunchEditorRecords.addEventListener("click", async (event) => {
-    const editBtn = event.target.closest(".admin-edit-punch-btn");
-    const deleteBtn = event.target.closest(".admin-delete-punch-btn");
+  if (editBtn) {
+    openEditPunchModal(editBtn);
+  }
 
-    if (editBtn) {
-      openEditPunchModal(editBtn);
-    }
+  if (deleteBtn) {
+    await softDeletePunch(deleteBtn.dataset.id);
+  }
+});
 
-    if (deleteBtn) {
-      await softDeletePunch(deleteBtn.dataset.id);
-    }
-  });
-}
+saveEditedPunchBtn.addEventListener("click", async () => {
+  await saveEditedPunch();
+});
 
-if (saveEditedPunchBtn) {
-  saveEditedPunchBtn.addEventListener("click", async () => {
-    await saveEditedPunch();
-  });
-}
+postScheduleBtn.addEventListener("click", async () => {
+  await postEmployeeSchedule();
+});
 
-if (postScheduleBtn) {
-  postScheduleBtn.addEventListener("click", async () => {
-    await postEmployeeSchedule();
-  });
-}
+loadAdminSchedulesBtn.addEventListener("click", async () => {
+  await loadAdminSchedules();
+});
 
-if (loadAdminSchedulesBtn) {
-  loadAdminSchedulesBtn.addEventListener("click", async () => {
-    await loadAdminSchedules();
-  });
-}
+loadMyScheduleBtn.addEventListener("click", async () => {
+  await loadMySchedule();
+});
 
-if (loadMyScheduleBtn) {
-  loadMyScheduleBtn.addEventListener("click", async () => {
-    await loadMySchedule();
-  });
-}
+buildScheduleWeekBtn.addEventListener("click", () => {
+  buildScheduleWeekGrid();
+});
 
 document.getElementById("signupBtn").addEventListener("click", async () => {
   const name = document.getElementById("signupName").value.trim();
@@ -385,6 +372,64 @@ document.getElementById("loadMyHistoryBtn").addEventListener("click", async () =
   await loadMyHistory();
 });
 
+function buildScheduleWeekGrid() {
+  const selectedWeek = adminScheduleBuilderWeekPicker.value;
+
+  if (!selectedWeek) {
+    alert("Please choose a week first.");
+    return;
+  }
+
+  const { startOfWeek } = getWeekDateRange(selectedWeek);
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  let html = "";
+
+  for (let i = 0; i < 7; i++) {
+    const dayDate = new Date(startOfWeek);
+    dayDate.setDate(startOfWeek.getDate() + i);
+
+    const dateValue = formatDateInputValue(dayDate);
+    const displayDate = dayDate.toLocaleDateString([], {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
+
+    html += `
+      <button
+        type="button"
+        class="schedule-day-btn"
+        data-date="${dateValue}"
+        data-day="${dayNames[i]}"
+        data-display="${displayDate}"
+      >
+        <strong>${dayNames[i]}</strong>
+        <span>${displayDate}</span>
+      </button>
+    `;
+  }
+
+  scheduleWeekGrid.innerHTML = html;
+  selectedScheduleDayBox.classList.add("hidden");
+}
+
+scheduleWeekGrid.addEventListener("click", (event) => {
+  const dayButton = event.target.closest(".schedule-day-btn");
+
+  if (!dayButton) return;
+
+  document.querySelectorAll(".schedule-day-btn").forEach((button) => {
+    button.classList.remove("active-day");
+  });
+
+  dayButton.classList.add("active-day");
+
+  scheduleDate.value = dayButton.dataset.date;
+  selectedScheduleDayTitle.textContent = `${dayButton.dataset.day} · ${dayButton.dataset.display}`;
+  selectedScheduleDayBox.classList.remove("hidden");
+});
+
 async function postEmployeeSchedule() {
   const adminUser = auth.currentUser;
 
@@ -399,7 +444,7 @@ async function postEmployeeSchedule() {
   const notesValue = scheduleNotes.value.trim();
 
   if (!employeeEmail || !employeeName || !dateValue || !startTimeValue || !endTimeValue) {
-    alert("Enter employee email, employee name, date, start time, and end time.");
+    alert("Choose a day and enter employee email, employee name, start time, and end time.");
     return;
   }
 
@@ -428,8 +473,6 @@ async function postEmployeeSchedule() {
       deleted: false
     });
 
-    scheduleEmployeeEmail.value = "";
-    scheduleEmployeeName.value = "";
     scheduleStartTime.value = "";
     scheduleEndTime.value = "";
     scheduleLocation.value = "";
@@ -437,10 +480,8 @@ async function postEmployeeSchedule() {
 
     alert("Schedule posted.");
 
-    if (adminScheduleWeekPicker) {
-      adminScheduleWeekPicker.value = weekValue;
-      await loadAdminSchedules();
-    }
+    adminScheduleWeekPicker.value = weekValue;
+    await loadAdminSchedules();
   } catch (error) {
     alert(error.message);
   }
@@ -520,12 +561,12 @@ async function loadMySchedule() {
 function buildScheduleCard(data, showEmployee) {
   return `
     <div class="schedule-card">
-      <h3>${escapeHTML(data.date || "Scheduled Day")}</h3>
+      <h3>${escapeHTML(formatDateDisplay(data.date))}</h3>
       ${showEmployee ? `<p><strong>Employee:</strong> ${escapeHTML(data.employeeName || data.employeeEmail)}</p>` : ""}
       ${showEmployee ? `<p><strong>Email:</strong> ${escapeHTML(data.employeeEmail)}</p>` : ""}
       <p><strong>Time:</strong> ${formatTimeFrom24Hour(data.startTime)} - ${formatTimeFrom24Hour(data.endTime)}</p>
-      <p><strong>Location:</strong> ${escapeHTML(data.location || "Not listed")}</p>
-      <p><strong>Notes:</strong> ${escapeHTML(data.notes || "No notes")}</p>
+      <p><strong>Job Site:</strong> ${escapeHTML(data.location || "Not listed")}</p>
+      <p><strong>Work Notes:</strong> ${escapeHTML(data.notes || "No notes")}</p>
     </div>
   `;
 }
@@ -720,14 +761,8 @@ async function loadAdminPunchEditor() {
 }
 
 function buildAdminPunchRow(punchId, data, employeeName, dateObj) {
-  const yyyy = dateObj.getFullYear();
-  const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
-  const dd = String(dateObj.getDate()).padStart(2, "0");
-  const hours = String(dateObj.getHours()).padStart(2, "0");
-  const minutes = String(dateObj.getMinutes()).padStart(2, "0");
-
-  const dateValue = `${yyyy}-${mm}-${dd}`;
-  const timeValue = `${hours}:${minutes}`;
+  const dateValue = formatDateInputValue(dateObj);
+  const timeValue = `${String(dateObj.getHours()).padStart(2, "0")}:${String(dateObj.getMinutes()).padStart(2, "0")}`;
 
   const displayTime = dateObj.toLocaleString([], {
     weekday: "short",
@@ -1473,11 +1508,7 @@ function getWeekDates(startOfWeek) {
     const currentDate = new Date(startOfWeek);
     currentDate.setDate(startOfWeek.getDate() + i);
 
-    const mm = String(currentDate.getMonth() + 1).padStart(2, "0");
-    const dd = String(currentDate.getDate()).padStart(2, "0");
-    const yy = String(currentDate.getFullYear()).slice(-2);
-
-    dates.push(`${mm}-${dd}-${yy}`);
+    dates.push(formatDateShort(currentDate));
   }
 
   return dates;
@@ -1485,26 +1516,7 @@ function getWeekDates(startOfWeek) {
 
 function getCurrentWeekValue() {
   const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 1);
-  startOfYear.setHours(0, 0, 0, 0);
-
-  const currentSunday = new Date(now);
-  currentSunday.setHours(0, 0, 0, 0);
-
-  while (currentSunday.getDay() !== 0) {
-    currentSunday.setDate(currentSunday.getDate() - 1);
-  }
-
-  const firstSunday = new Date(startOfYear);
-
-  while (firstSunday.getDay() !== 0) {
-    firstSunday.setDate(firstSunday.getDate() - 1);
-  }
-
-  const weekNumber =
-    Math.floor((currentSunday - firstSunday) / 604800000) + 1;
-
-  return `${now.getFullYear()}-W${String(weekNumber).padStart(2, "0")}`;
+  return getWeekValueFromDate(now);
 }
 
 function getWeekValueFromDate(dateObj) {
@@ -1538,16 +1550,43 @@ function setCurrentWeek() {
   if (adminEditWeekPicker) adminEditWeekPicker.value = currentWeek;
   if (myScheduleWeekPicker) myScheduleWeekPicker.value = currentWeek;
   if (adminScheduleWeekPicker) adminScheduleWeekPicker.value = currentWeek;
+  if (adminScheduleBuilderWeekPicker) adminScheduleBuilderWeekPicker.value = currentWeek;
 }
 
 function setTodayDate() {
   const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
 
-  if (editDate) editDate.value = `${yyyy}-${mm}-${dd}`;
-  if (scheduleDate) scheduleDate.value = `${yyyy}-${mm}-${dd}`;
+  if (editDate) editDate.value = formatDateInputValue(today);
+  if (scheduleDate) scheduleDate.value = formatDateInputValue(today);
+}
+
+function formatDateInputValue(dateObj) {
+  const yyyy = dateObj.getFullYear();
+  const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const dd = String(dateObj.getDate()).padStart(2, "0");
+
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function formatDateShort(dateObj) {
+  const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const dd = String(dateObj.getDate()).padStart(2, "0");
+  const yy = String(dateObj.getFullYear()).slice(-2);
+
+  return `${mm}-${dd}-${yy}`;
+}
+
+function formatDateDisplay(dateValue) {
+  if (!dateValue) return "Scheduled Day";
+
+  const dateObj = new Date(`${dateValue}T00:00`);
+
+  return dateObj.toLocaleDateString([], {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
 }
 
 function formatTimeFrom24Hour(timeValue) {
@@ -1583,7 +1622,13 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     authBox.classList.add("hidden");
     signupBox.classList.add("hidden");
+    employeeLeftColumn.classList.remove("hidden");
     settingsIconBtn.classList.remove("hidden");
+
+    clockBox.classList.remove("hidden");
+    myHistoryBox.classList.remove("hidden");
+    timeEditBox.classList.remove("hidden");
+    signatureBox.classList.remove("hidden");
 
     const cleanEmail = user.email.toLowerCase().trim();
 
@@ -1602,53 +1647,28 @@ onAuthStateChanged(auth, async (user) => {
 
     if (cleanAdminEmails.includes(cleanEmail)) {
       appLayout.classList.remove("employee-only");
-
-      employeeLeftColumn.classList.remove("hidden");
-      employeeRightPanel.classList.add("hidden");
-
-      clockBox.classList.remove("hidden");
-      myHistoryBox.classList.add("hidden");
-      timeEditBox.classList.add("hidden");
-      signatureBox.classList.add("hidden");
-
       adminBox.classList.remove("hidden");
       signatureAdminBox.classList.remove("hidden");
-
-      if (adminPunchEditorBtn) {
-        adminPunchEditorBtn.classList.remove("hidden");
-      }
+      adminPunchEditorBtn.classList.remove("hidden");
 
       await loadPendingTimeEditRequests();
       await loadWeeklySignatures();
       await loadAdminSchedules();
+      buildScheduleWeekGrid();
     } else {
       appLayout.classList.add("employee-only");
-
-      employeeLeftColumn.classList.remove("hidden");
-      employeeRightPanel.classList.remove("hidden");
-
-      clockBox.classList.remove("hidden");
-      myHistoryBox.classList.remove("hidden");
-      timeEditBox.classList.remove("hidden");
-      signatureBox.classList.remove("hidden");
-
       adminBox.classList.add("hidden");
       signatureAdminBox.classList.add("hidden");
-
-      if (adminPunchEditorBtn) {
-        adminPunchEditorBtn.classList.add("hidden");
-      }
-
-      await checkWeeklySignature();
-      await loadMySchedule();
+      adminPunchEditorBtn.classList.add("hidden");
     }
 
+    await checkWeeklySignature();
+    await loadMySchedule();
     await loadMyTimeEditRequests();
   } else {
     authBox.classList.remove("hidden");
     signupBox.classList.add("hidden");
     employeeLeftColumn.classList.add("hidden");
-    employeeRightPanel.classList.add("hidden");
     clockBox.classList.add("hidden");
     myHistoryBox.classList.add("hidden");
     timeEditBox.classList.add("hidden");
@@ -1657,19 +1677,10 @@ onAuthStateChanged(auth, async (user) => {
     adminBox.classList.add("hidden");
     settingsIconBtn.classList.add("hidden");
     settingsModal.classList.add("hidden");
+    adminPunchEditorBtn.classList.add("hidden");
+    adminPunchModal.classList.add("hidden");
+    editPunchModal.classList.add("hidden");
     appLayout.classList.add("employee-only");
-
-    if (adminPunchEditorBtn) {
-      adminPunchEditorBtn.classList.add("hidden");
-    }
-
-    if (adminPunchModal) {
-      adminPunchModal.classList.add("hidden");
-    }
-
-    if (editPunchModal) {
-      editPunchModal.classList.add("hidden");
-    }
 
     currentUserName = "";
   }
