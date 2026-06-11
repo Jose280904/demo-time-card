@@ -17,57 +17,91 @@
 </head>
 
 <body>
-  <button id="settingsIconBtn" class="settings-icon hidden" title="Account Settings">👤</button>
-  <button id="adminPunchEditorBtn" class="admin-edit-icon hidden" title="Edit Employee Punches">✏️ Edit</button>
-
   <header class="site-header">
+    <button id="hamburgerBtn" class="hamburger-btn hidden">☰</button>
     <img src="images/your-logo.jpg" alt="Company Logo" class="logo" />
   </header>
 
-  <main class="app-layout employee-only">
-    <section class="left-panel">
-      <section id="authBox" class="card">
-        <h2>Login</h2>
-        <p class="muted">Enter your email and password.</p>
+  <nav id="sideMenu" class="side-menu hidden">
+    <div class="side-menu-header">
+      <h3>Menu</h3>
+      <button id="closeMenuBtn" class="close-menu-btn">×</button>
+    </div>
 
-        <input id="email" type="email" placeholder="Email" />
+    <button class="menu-link active-menu-link" data-page="clockPage">Clock Status</button>
+    <button class="menu-link" data-page="schedulePage">My Schedule</button>
+    <button class="menu-link" data-page="timeOffPage">Time Off</button>
+    <button class="menu-link" data-page="timeEditPage">Time Edit Request</button>
+    <button class="menu-link" data-page="profilePage">My Profile</button>
+    <button class="menu-link" data-page="historyPage">My Punch History</button>
+    <button class="menu-link" data-page="signaturePage">Weekly Signature</button>
 
-        <div class="password-row">
-          <input id="password" type="password" placeholder="Password" />
-          <button id="showPasswordBtn" type="button" class="show-btn">Show</button>
-        </div>
+    <div id="adminMenuLinks" class="admin-menu-links hidden">
+      <p class="menu-section-title">Admin</p>
+      <button class="menu-link" data-page="adminScheduleBuilderPage">Schedule Builder</button>
+      <button class="menu-link" data-page="adminPostedSchedulesPage">Posted Schedules</button>
+      <button class="menu-link" data-page="adminTimeOffPage">Time Off Approvals</button>
+      <button class="menu-link" data-page="adminTimeEditPage">Time Edit Approvals</button>
+      <button class="menu-link" data-page="adminWeeklyRecordsPage">Weekly Records</button>
+      <button class="menu-link" data-page="adminSignaturesPage">Signatures Log</button>
+      <button class="menu-link" data-page="adminPunchEditorPage">Edit Punches</button>
+    </div>
 
-        <button id="loginBtn">Login</button>
-        <button id="openSignupBtn" class="outline-btn">Create Account</button>
-        <p id="forgotPasswordLink" class="forgot-password">Forgot password?</p>
-        <p class="spam-note">Check your spam or junk folder if you do not see the reset email.</p>
-      </section>
+    <button id="logoutBtn" class="menu-logout-btn">↪ Logout</button>
+  </nav>
 
-      <section id="signupBox" class="card hidden">
-        <h2>Create Account</h2>
-        <p class="muted">New users need to enter their name once.</p>
+  <div id="menuOverlay" class="menu-overlay hidden"></div>
 
-        <input id="signupName" type="text" placeholder="Full Name" />
-        <input id="signupEmail" type="email" placeholder="Email" />
+  <main class="app-shell">
+    <section id="authBox" class="card auth-card">
+      <h2>Login</h2>
+      <p class="muted">Enter your email and password.</p>
 
-        <div class="password-row">
-          <input id="signupPassword" type="password" placeholder="Password" />
-          <button id="showSignupPasswordBtn" type="button" class="show-btn">Show</button>
-        </div>
+      <input id="email" type="email" placeholder="Email" />
 
-        <div class="password-row">
-          <input id="confirmPassword" type="password" placeholder="Confirm Password" />
-          <button id="showConfirmPasswordBtn" type="button" class="show-btn">Show</button>
-        </div>
+      <div class="password-row">
+        <input id="password" type="password" placeholder="Password" />
+        <button id="showPasswordBtn" type="button" class="show-btn">Show</button>
+      </div>
 
-        <button id="signupBtn">Create Account</button>
-        <button id="backToLoginBtn" class="outline-btn">Back to Login</button>
-      </section>
+      <button id="loginBtn">Login</button>
+      <button id="openSignupBtn" class="outline-btn">Create Account</button>
+      <p id="forgotPasswordLink" class="forgot-password">Forgot password?</p>
+      <p class="spam-note">Check your spam or junk folder if you do not see the reset email.</p>
+    </section>
 
-      <div id="employeeLeftColumn" class="employee-column hidden">
-        <section id="clockBox" class="card hidden">
+    <section id="signupBox" class="card auth-card hidden">
+      <h2>Create Account</h2>
+      <p class="muted">New users need to enter their name once.</p>
+
+      <input id="signupName" type="text" placeholder="Full Name" />
+      <input id="signupEmail" type="email" placeholder="Email" />
+
+      <div class="password-row">
+        <input id="signupPassword" type="password" placeholder="Password" />
+        <button id="showSignupPasswordBtn" type="button" class="show-btn">Show</button>
+      </div>
+
+      <div class="password-row">
+        <input id="confirmPassword" type="password" placeholder="Confirm Password" />
+        <button id="showConfirmPasswordBtn" type="button" class="show-btn">Show</button>
+      </div>
+
+      <button id="signupBtn">Create Account</button>
+      <button id="backToLoginBtn" class="outline-btn">Back to Login</button>
+    </section>
+
+    <section id="appPages" class="app-pages hidden">
+      <section id="clockPage" class="app-page active-page">
+        <section id="clockBox" class="card">
           <h2 id="welcomeText">Welcome</h2>
-          <p class="muted">Have a great day!</p>
+          <p class="muted">Clock in, start lunch, end lunch, or clock out.</p>
+
+          <div class="status-card">
+            <p class="status-label">Current Status</p>
+            <h3 id="clockStatusText">Ready</h3>
+            <p id="lastPunchText" class="muted">No recent punch loaded.</p>
+          </div>
 
           <div class="clock-actions">
             <button id="clockInBtn">🟢 Clock In</button>
@@ -75,23 +109,58 @@
             <button id="endLunchBtn">🔙 End Lunch</button>
             <button id="clockOutBtn">🔴 Clock Out</button>
           </div>
-
-          <button id="logoutBtn" class="outline-btn">↪ Logout</button>
         </section>
+      </section>
 
-        <section id="signatureBox" class="card hidden">
-          <h2>Weekly E-Signature</h2>
-          <p class="muted">Sign once per week to confirm your time records.</p>
+      <section id="schedulePage" class="app-page hidden">
+        <section id="myScheduleBox" class="card">
+          <div class="page-title-row">
+            <div>
+              <h2>My Schedule</h2>
+              <p class="muted">Blue dots show scheduled days. Approved time off will also appear here.</p>
+            </div>
+          </div>
 
-          <div id="signatureStatus" class="info-box">Checking signature status...</div>
+          <div class="calendar-controls">
+            <button id="prevMonthBtn" class="outline-btn">← Previous</button>
+            <h3 id="myScheduleMonthTitle">Month</h3>
+            <button id="nextMonthBtn" class="outline-btn">Next →</button>
+          </div>
 
-          <label for="signatureInput">Type your full name:</label>
-          <input id="signatureInput" type="text" placeholder="Full Name" />
+          <div id="myScheduleCalendar" class="month-calendar">
+            <p class="info-box">Loading calendar...</p>
+          </div>
 
-          <button id="submitSignatureBtn">Submit Weekly Signature</button>
+          <div id="selectedScheduleDetails" class="selected-day-details">
+            <p class="info-box">Tap a day to view schedule details.</p>
+          </div>
         </section>
+      </section>
 
-        <section id="timeEditBox" class="card hidden">
+      <section id="timeOffPage" class="app-page hidden">
+        <section id="timeOffBox" class="card">
+          <h2>Time Off Request</h2>
+          <p class="muted">Request days off. Once approved, admin will not be able to schedule you on those days.</p>
+
+          <label for="timeOffStartDate">Start Date:</label>
+          <input id="timeOffStartDate" type="date" />
+
+          <label for="timeOffEndDate">End Date:</label>
+          <input id="timeOffEndDate" type="date" />
+
+          <label for="timeOffReason">Reason:</label>
+          <textarea id="timeOffReason" placeholder="Example: Vacation, appointment, family event, etc."></textarea>
+
+          <button id="submitTimeOffBtn">Submit Time Off Request</button>
+
+          <div id="myTimeOffRequests">
+            <p class="info-box">No time off requests loaded yet.</p>
+          </div>
+        </section>
+      </section>
+
+      <section id="timeEditPage" class="app-page hidden">
+        <section id="timeEditBox" class="card">
           <h2>Time Edit Request</h2>
           <p class="muted">Forgot to clock in, lunch, or clock out? Submit a request for admin approval.</p>
 
@@ -118,24 +187,33 @@
             <p class="info-box">No time edit requests loaded yet.</p>
           </div>
         </section>
-      </div>
+      </section>
 
-      <section id="employeeRightPanel" class="employee-right-panel hidden">
-        <section id="myScheduleBox" class="card hidden">
-          <h2>My Schedule</h2>
-          <p class="muted">View your assigned schedule for the selected week.</p>
+      <section id="profilePage" class="app-page hidden">
+        <section id="profileBox" class="card">
+          <h2>My Profile</h2>
+          <p class="muted">View your account details or send yourself a password reset email.</p>
 
-          <label for="myScheduleWeekPicker">Choose Week:</label>
-          <input id="myScheduleWeekPicker" type="week" />
-
-          <button id="loadMyScheduleBtn">Load My Schedule</button>
-
-          <div id="myScheduleRecords">
-            <p class="info-box">No schedule loaded yet.</p>
+          <div class="profile-info-box">
+            <p class="status-label">Name</p>
+            <h3 id="profileNameText">Loading...</h3>
           </div>
-        </section>
 
-        <section id="myHistoryBox" class="card hidden">
+          <div class="profile-info-box">
+            <p class="status-label">Email</p>
+            <h3 id="profileEmailText">Loading...</h3>
+          </div>
+
+          <label for="settingsName">Update Name:</label>
+          <input id="settingsName" type="text" placeholder="Update your full name" />
+
+          <button id="saveNameBtn">Save Name</button>
+          <button id="resetPasswordBtn" class="outline-btn">Send Password Reset Email</button>
+        </section>
+      </section>
+
+      <section id="historyPage" class="app-page hidden">
+        <section id="myHistoryBox" class="card">
           <h2>My Punch History</h2>
           <p class="muted">View your own weekly punch records.</p>
 
@@ -149,137 +227,153 @@
           </div>
         </section>
       </section>
+
+      <section id="signaturePage" class="app-page hidden">
+        <section id="signatureBox" class="card">
+          <h2>Weekly E-Signature</h2>
+          <p class="muted">Sign once per week to confirm your time records.</p>
+
+          <div id="signatureStatus" class="info-box">Checking signature status...</div>
+
+          <label for="signatureInput">Type your full name:</label>
+          <input id="signatureInput" type="text" placeholder="Full Name" />
+
+          <button id="submitSignatureBtn">Submit Weekly Signature</button>
+        </section>
+      </section>
+
+      <section id="adminScheduleBuilderPage" class="app-page hidden admin-page">
+        <section class="card">
+          <h2>Schedule Builder</h2>
+          <p class="muted">Enter the employee once, then click each day they work and add the times/notes.</p>
+
+          <label for="scheduleEmployeeEmail">Employee Email:</label>
+          <input id="scheduleEmployeeEmail" type="email" placeholder="employee@email.com" />
+
+          <label for="scheduleEmployeeName">Employee Name:</label>
+          <input id="scheduleEmployeeName" type="text" placeholder="Employee Name" />
+
+          <label for="adminScheduleBuilderWeekPicker">Choose Week:</label>
+          <input id="adminScheduleBuilderWeekPicker" type="week" />
+
+          <button id="buildScheduleWeekBtn">Show Week</button>
+
+          <div id="scheduleWeekGrid" class="schedule-week-grid">
+            <p class="info-box">Choose a week to build a schedule.</p>
+          </div>
+
+          <div id="selectedScheduleDayBox" class="schedule-form-box hidden">
+            <h3 id="selectedScheduleDayTitle">Selected Day</h3>
+
+            <input id="scheduleDate" type="hidden" />
+
+            <label for="scheduleStartTime">Start Time:</label>
+            <input id="scheduleStartTime" type="time" />
+
+            <label for="scheduleEndTime">End Time:</label>
+            <input id="scheduleEndTime" type="time" />
+
+            <label for="scheduleLocation">Job Site / Location:</label>
+            <input id="scheduleLocation" type="text" placeholder="Example: Main Office, Site A, Client Location" />
+
+            <label for="scheduleNotes">Shift Notes:</label>
+            <textarea id="scheduleNotes" placeholder="Example: What they will be working on, tools needed, job details, etc."></textarea>
+
+            <button id="postScheduleBtn">Post Schedule for This Day</button>
+          </div>
+        </section>
+      </section>
+
+      <section id="adminPostedSchedulesPage" class="app-page hidden admin-page">
+        <section class="card">
+          <h2>Posted Schedules</h2>
+          <p class="muted">View schedules posted for the selected week.</p>
+
+          <label for="adminScheduleWeekPicker">Choose Week:</label>
+          <input id="adminScheduleWeekPicker" type="week" />
+
+          <button id="loadAdminSchedulesBtn">Load Posted Schedules</button>
+
+          <div id="adminScheduleRecords">
+            <p class="info-box">No schedules loaded yet.</p>
+          </div>
+        </section>
+      </section>
+
+      <section id="adminTimeOffPage" class="app-page hidden admin-page">
+        <section class="card">
+          <h2>Time Off Approvals</h2>
+          <p class="muted">Approve or reject employee time off requests.</p>
+
+          <button id="loadTimeOffRequestsBtn">Load Pending Time Off</button>
+
+          <div id="timeOffRequests">
+            <p class="info-box">No pending time off requests loaded yet.</p>
+          </div>
+        </section>
+      </section>
+
+      <section id="adminTimeEditPage" class="app-page hidden admin-page">
+        <section class="card">
+          <h2>Time Edit Approvals</h2>
+          <p class="muted">Approve or reject employee time edit requests.</p>
+
+          <button id="loadTimeEditRequestsBtn">Load Pending Requests</button>
+
+          <div id="timeEditRequests">
+            <p class="info-box">No pending requests loaded yet.</p>
+          </div>
+        </section>
+      </section>
+
+      <section id="adminWeeklyRecordsPage" class="app-page hidden admin-page">
+        <section class="card">
+          <h2>Weekly Records</h2>
+          <p class="muted">View employee time clock records.</p>
+
+          <label for="weekPicker">Choose Week:</label>
+          <input id="weekPicker" type="week" />
+
+          <button id="loadRecordsBtn">Load Weekly Records</button>
+
+          <div id="records">
+            <p class="info-box">No records loaded yet.</p>
+          </div>
+        </section>
+      </section>
+
+      <section id="adminSignaturesPage" class="app-page hidden admin-page">
+        <section id="signatureAdminBox" class="card">
+          <h2>Weekly Signatures Log</h2>
+          <p class="muted">View employees who have signed for the selected week.</p>
+
+          <button id="loadWeeklySignaturesBtn">Load Weekly Signatures</button>
+
+          <div id="weeklySignatures">
+            <p class="info-box">No signatures loaded yet.</p>
+          </div>
+        </section>
+      </section>
+
+      <section id="adminPunchEditorPage" class="app-page hidden admin-page">
+        <section class="card">
+          <h2>Edit Employee Punches</h2>
+          <p class="muted">Choose a week, then edit or delete employee punches.</p>
+
+          <label for="adminEditWeekPicker">Choose Week:</label>
+          <input id="adminEditWeekPicker" type="week" />
+
+          <button id="loadAdminPunchesBtn">Load Punches</button>
+
+          <div id="adminPunchEditorRecords">
+            <p class="info-box">No punches loaded yet.</p>
+          </div>
+        </section>
+      </section>
     </section>
 
-    <section id="adminBox" class="right-panel hidden">
-      <h2>Admin Dashboard</h2>
-      <p class="muted">Build weekly schedules, review records, approve requests, and view signatures.</p>
-
-      <section class="admin-request-section no-top-border">
-        <h2>Weekly Schedule Builder</h2>
-        <p class="muted">Enter the employee once, then click each day they work and add the times/notes.</p>
-
-        <label for="scheduleEmployeeEmail">Employee Email:</label>
-        <input id="scheduleEmployeeEmail" type="email" placeholder="employee@email.com" />
-
-        <label for="scheduleEmployeeName">Employee Name:</label>
-        <input id="scheduleEmployeeName" type="text" placeholder="Employee Name" />
-
-        <label for="adminScheduleBuilderWeekPicker">Choose Week:</label>
-        <input id="adminScheduleBuilderWeekPicker" type="week" />
-
-        <button id="buildScheduleWeekBtn">Show Week</button>
-
-        <div id="scheduleWeekGrid" class="schedule-week-grid">
-          <p class="info-box">Choose a week to build a schedule.</p>
-        </div>
-
-        <div id="selectedScheduleDayBox" class="schedule-form-box hidden">
-          <h3 id="selectedScheduleDayTitle">Selected Day</h3>
-
-          <input id="scheduleDate" type="hidden" />
-
-          <label for="scheduleStartTime">Start Time:</label>
-          <input id="scheduleStartTime" type="time" />
-
-          <label for="scheduleEndTime">End Time:</label>
-          <input id="scheduleEndTime" type="time" />
-
-          <label for="scheduleLocation">Job Site / Location:</label>
-          <input id="scheduleLocation" type="text" placeholder="Example: Main Office, Site A, Client Location" />
-
-          <label for="scheduleNotes">Work Notes:</label>
-          <textarea id="scheduleNotes" placeholder="Example: What they will be working on, tools needed, job details, etc."></textarea>
-
-          <button id="postScheduleBtn">Post Schedule for This Day</button>
-        </div>
-      </section>
-
-      <section class="admin-request-section">
-        <h2>Posted Schedules</h2>
-        <p class="muted">View schedules posted for the selected week.</p>
-
-        <label for="adminScheduleWeekPicker">Choose Week:</label>
-        <input id="adminScheduleWeekPicker" type="week" />
-
-        <button id="loadAdminSchedulesBtn">Load Posted Schedules</button>
-
-        <div id="adminScheduleRecords">
-          <p class="info-box">No schedules loaded yet.</p>
-        </div>
-      </section>
-
-      <section class="admin-request-section">
-        <h2>Weekly Records</h2>
-        <p class="muted">View employee time clock records.</p>
-
-        <label for="weekPicker">Choose Week:</label>
-        <input id="weekPicker" type="week" />
-
-        <button id="loadRecordsBtn">Load Weekly Records</button>
-
-        <div id="records">
-          <p class="info-box">No records loaded yet.</p>
-        </div>
-      </section>
-
-      <section class="admin-request-section">
-        <h2>Time Edit Approvals</h2>
-        <p class="muted">Approve or reject employee time edit requests.</p>
-
-        <button id="loadTimeEditRequestsBtn">Load Pending Requests</button>
-
-        <div id="timeEditRequests">
-          <p class="info-box">No pending requests loaded yet.</p>
-        </div>
-      </section>
-
-      <section id="signatureAdminBox" class="admin-request-section hidden">
-        <h2>Weekly Signatures Log</h2>
-        <p class="muted">View employees who have signed for the selected week.</p>
-
-        <button id="loadWeeklySignaturesBtn">Load Weekly Signatures</button>
-
-        <div id="weeklySignatures">
-          <p class="info-box">No signatures loaded yet.</p>
-        </div>
-      </section>
-
-      <p class="footer-note">Demo Timecard · All times are local.</p>
-    </section>
+    <p id="footerNote" class="footer-note hidden">Demo Timecard · All times are local.</p>
   </main>
-
-  <div id="settingsModal" class="modal hidden">
-    <div class="modal-card">
-      <button id="closeSettingsBtn" class="close-btn">×</button>
-
-      <h2>Account Settings</h2>
-      <p class="muted">Update your name or reset your password.</p>
-
-      <input id="settingsName" type="text" placeholder="Update your full name" />
-
-      <button id="saveNameBtn">Save Name</button>
-      <button id="resetPasswordBtn" class="outline-btn">Send Password Reset Email</button>
-    </div>
-  </div>
-
-  <div id="adminPunchModal" class="modal hidden">
-    <div class="modal-card wide-modal">
-      <button id="closeAdminPunchBtn" class="close-btn">×</button>
-
-      <h2>Edit Employee Punches</h2>
-      <p class="muted">Choose a week, then edit or delete employee punches.</p>
-
-      <label for="adminEditWeekPicker">Choose Week:</label>
-      <input id="adminEditWeekPicker" type="week" />
-
-      <button id="loadAdminPunchesBtn">Load Punches</button>
-
-      <div id="adminPunchEditorRecords">
-        <p class="info-box">No punches loaded yet.</p>
-      </div>
-    </div>
-  </div>
 
   <div id="editPunchModal" class="modal hidden">
     <div class="modal-card">

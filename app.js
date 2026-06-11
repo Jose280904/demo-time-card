@@ -33,117 +33,112 @@ const firebaseConfig = {
   measurementId: "G-GKV8F9SBBN"
 };
 
-const adminEmails = [
-  "centralwebservices@outlook.com"
-];
+const adminEmails = ["centralwebservices@outlook.com"];
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const appLayout = document.querySelector(".app-layout");
+const $ = (id) => document.getElementById(id);
 
-const authBox = document.getElementById("authBox");
-const signupBox = document.getElementById("signupBox");
-const clockBox = document.getElementById("clockBox");
-const adminBox = document.getElementById("adminBox");
-const welcomeText = document.getElementById("welcomeText");
-const records = document.getElementById("records");
-const settingsName = document.getElementById("settingsName");
-const weekPicker = document.getElementById("weekPicker");
-const settingsIconBtn = document.getElementById("settingsIconBtn");
-const settingsModal = document.getElementById("settingsModal");
+const authBox = $("authBox");
+const signupBox = $("signupBox");
+const appPages = $("appPages");
+const hamburgerBtn = $("hamburgerBtn");
+const sideMenu = $("sideMenu");
+const closeMenuBtn = $("closeMenuBtn");
+const menuOverlay = $("menuOverlay");
+const adminMenuLinks = $("adminMenuLinks");
+const footerNote = $("footerNote");
 
-const employeeLeftColumn = document.getElementById("employeeLeftColumn");
-const employeeRightPanel = document.getElementById("employeeRightPanel");
+const welcomeText = $("welcomeText");
+const clockStatusText = $("clockStatusText");
+const lastPunchText = $("lastPunchText");
 
-const myHistoryBox = document.getElementById("myHistoryBox");
-const myWeekPicker = document.getElementById("myWeekPicker");
-const myHistoryRecords = document.getElementById("myHistoryRecords");
+const settingsName = $("settingsName");
+const profileNameText = $("profileNameText");
+const profileEmailText = $("profileEmailText");
 
-const myScheduleBox = document.getElementById("myScheduleBox");
-const myScheduleWeekPicker = document.getElementById("myScheduleWeekPicker");
-const loadMyScheduleBtn = document.getElementById("loadMyScheduleBtn");
-const myScheduleRecords = document.getElementById("myScheduleRecords");
+const weekPicker = $("weekPicker");
+const myWeekPicker = $("myWeekPicker");
+const myHistoryRecords = $("myHistoryRecords");
+const records = $("records");
 
-const adminScheduleBuilderWeekPicker = document.getElementById("adminScheduleBuilderWeekPicker");
-const buildScheduleWeekBtn = document.getElementById("buildScheduleWeekBtn");
-const scheduleWeekGrid = document.getElementById("scheduleWeekGrid");
-const selectedScheduleDayBox = document.getElementById("selectedScheduleDayBox");
-const selectedScheduleDayTitle = document.getElementById("selectedScheduleDayTitle");
+const editDate = $("editDate");
+const editTime = $("editTime");
+const editType = $("editType");
+const editReason = $("editReason");
+const myTimeEditRequests = $("myTimeEditRequests");
+const timeEditRequests = $("timeEditRequests");
 
-const scheduleEmployeeEmail = document.getElementById("scheduleEmployeeEmail");
-const scheduleEmployeeName = document.getElementById("scheduleEmployeeName");
-const scheduleDate = document.getElementById("scheduleDate");
-const scheduleStartTime = document.getElementById("scheduleStartTime");
-const scheduleEndTime = document.getElementById("scheduleEndTime");
-const scheduleLocation = document.getElementById("scheduleLocation");
-const scheduleNotes = document.getElementById("scheduleNotes");
-const postScheduleBtn = document.getElementById("postScheduleBtn");
+const timeOffStartDate = $("timeOffStartDate");
+const timeOffEndDate = $("timeOffEndDate");
+const timeOffReason = $("timeOffReason");
+const myTimeOffRequests = $("myTimeOffRequests");
+const timeOffRequests = $("timeOffRequests");
 
-const adminScheduleWeekPicker = document.getElementById("adminScheduleWeekPicker");
-const loadAdminSchedulesBtn = document.getElementById("loadAdminSchedulesBtn");
-const adminScheduleRecords = document.getElementById("adminScheduleRecords");
+const signatureStatus = $("signatureStatus");
+const signatureInput = $("signatureInput");
+const submitSignatureBtn = $("submitSignatureBtn");
+const weeklySignatures = $("weeklySignatures");
 
-const timeEditBox = document.getElementById("timeEditBox");
-const editDate = document.getElementById("editDate");
-const editTime = document.getElementById("editTime");
-const editType = document.getElementById("editType");
-const editReason = document.getElementById("editReason");
-const myTimeEditRequests = document.getElementById("myTimeEditRequests");
-const timeEditRequests = document.getElementById("timeEditRequests");
+const adminScheduleBuilderWeekPicker = $("adminScheduleBuilderWeekPicker");
+const buildScheduleWeekBtn = $("buildScheduleWeekBtn");
+const scheduleWeekGrid = $("scheduleWeekGrid");
+const selectedScheduleDayBox = $("selectedScheduleDayBox");
+const selectedScheduleDayTitle = $("selectedScheduleDayTitle");
 
-const signatureBox = document.getElementById("signatureBox");
-const signatureAdminBox = document.getElementById("signatureAdminBox");
-const signatureStatus = document.getElementById("signatureStatus");
-const signatureInput = document.getElementById("signatureInput");
-const submitSignatureBtn = document.getElementById("submitSignatureBtn");
-const weeklySignatures = document.getElementById("weeklySignatures");
+const scheduleEmployeeEmail = $("scheduleEmployeeEmail");
+const scheduleEmployeeName = $("scheduleEmployeeName");
+const scheduleDate = $("scheduleDate");
+const scheduleStartTime = $("scheduleStartTime");
+const scheduleEndTime = $("scheduleEndTime");
+const scheduleLocation = $("scheduleLocation");
+const scheduleNotes = $("scheduleNotes");
+const postScheduleBtn = $("postScheduleBtn");
 
-const adminPunchEditorBtn = document.getElementById("adminPunchEditorBtn");
-const adminPunchModal = document.getElementById("adminPunchModal");
-const closeAdminPunchBtn = document.getElementById("closeAdminPunchBtn");
-const adminEditWeekPicker = document.getElementById("adminEditWeekPicker");
-const loadAdminPunchesBtn = document.getElementById("loadAdminPunchesBtn");
-const adminPunchEditorRecords = document.getElementById("adminPunchEditorRecords");
+const adminScheduleWeekPicker = $("adminScheduleWeekPicker");
+const adminScheduleRecords = $("adminScheduleRecords");
 
-const editPunchModal = document.getElementById("editPunchModal");
-const closeEditPunchBtn = document.getElementById("closeEditPunchBtn");
-const editingPunchId = document.getElementById("editingPunchId");
-const adminEditPunchDate = document.getElementById("adminEditPunchDate");
-const adminEditPunchTime = document.getElementById("adminEditPunchTime");
-const adminEditPunchType = document.getElementById("adminEditPunchType");
-const saveEditedPunchBtn = document.getElementById("saveEditedPunchBtn");
+const adminEditWeekPicker = $("adminEditWeekPicker");
+const adminPunchEditorRecords = $("adminPunchEditorRecords");
+
+const editPunchModal = $("editPunchModal");
+const closeEditPunchBtn = $("closeEditPunchBtn");
+const editingPunchId = $("editingPunchId");
+const adminEditPunchDate = $("adminEditPunchDate");
+const adminEditPunchTime = $("adminEditPunchTime");
+const adminEditPunchType = $("adminEditPunchType");
+const saveEditedPunchBtn = $("saveEditedPunchBtn");
+
+const prevMonthBtn = $("prevMonthBtn");
+const nextMonthBtn = $("nextMonthBtn");
+const myScheduleMonthTitle = $("myScheduleMonthTitle");
+const myScheduleCalendar = $("myScheduleCalendar");
+const selectedScheduleDetails = $("selectedScheduleDetails");
 
 let currentUserName = "";
+let currentCalendarDate = new Date();
 
 setCurrentWeek();
 setTodayDate();
 
-document.getElementById("showPasswordBtn").addEventListener("click", () => {
-  togglePassword("password", "showPasswordBtn");
-});
+$("showPasswordBtn").addEventListener("click", () => togglePassword("password", "showPasswordBtn"));
+$("showSignupPasswordBtn").addEventListener("click", () => togglePassword("signupPassword", "showSignupPasswordBtn"));
+$("showConfirmPasswordBtn").addEventListener("click", () => togglePassword("confirmPassword", "showConfirmPasswordBtn"));
 
-document.getElementById("showSignupPasswordBtn").addEventListener("click", () => {
-  togglePassword("signupPassword", "showSignupPasswordBtn");
-});
-
-document.getElementById("showConfirmPasswordBtn").addEventListener("click", () => {
-  togglePassword("confirmPassword", "showConfirmPasswordBtn");
-});
-
-document.getElementById("openSignupBtn").addEventListener("click", () => {
+$("openSignupBtn").addEventListener("click", () => {
   authBox.classList.add("hidden");
   signupBox.classList.remove("hidden");
 });
 
-document.getElementById("backToLoginBtn").addEventListener("click", () => {
+$("backToLoginBtn").addEventListener("click", () => {
   signupBox.classList.add("hidden");
   authBox.classList.remove("hidden");
 });
 
-document.getElementById("forgotPasswordLink").addEventListener("click", async () => {
-  const email = document.getElementById("email").value.trim().toLowerCase();
+$("forgotPasswordLink").addEventListener("click", async () => {
+  const email = $("email").value.trim().toLowerCase();
 
   if (!email) {
     alert("Enter your email first, then click forgot password.");
@@ -158,103 +153,11 @@ document.getElementById("forgotPasswordLink").addEventListener("click", async ()
   }
 });
 
-settingsIconBtn.addEventListener("click", () => {
-  settingsModal.classList.remove("hidden");
-});
-
-document.getElementById("closeSettingsBtn").addEventListener("click", () => {
-  settingsModal.classList.add("hidden");
-});
-
-settingsModal.addEventListener("click", (event) => {
-  if (event.target === settingsModal) {
-    settingsModal.classList.add("hidden");
-  }
-});
-
-adminPunchEditorBtn.addEventListener("click", () => {
-  adminPunchModal.classList.remove("hidden");
-  adminEditWeekPicker.value = weekPicker.value || getCurrentWeekValue();
-});
-
-closeAdminPunchBtn.addEventListener("click", () => {
-  adminPunchModal.classList.add("hidden");
-});
-
-adminPunchModal.addEventListener("click", (event) => {
-  if (event.target === adminPunchModal) {
-    adminPunchModal.classList.add("hidden");
-  }
-});
-
-closeEditPunchBtn.addEventListener("click", () => {
-  editPunchModal.classList.add("hidden");
-});
-
-editPunchModal.addEventListener("click", (event) => {
-  if (event.target === editPunchModal) {
-    editPunchModal.classList.add("hidden");
-  }
-});
-
-loadAdminPunchesBtn.addEventListener("click", async () => {
-  await loadAdminPunchEditor();
-});
-
-adminPunchEditorRecords.addEventListener("click", async (event) => {
-  const editBtn = event.target.closest(".admin-edit-punch-btn");
-  const deleteBtn = event.target.closest(".admin-delete-punch-btn");
-
-  if (editBtn) {
-    openEditPunchModal(editBtn);
-  }
-
-  if (deleteBtn) {
-    await softDeletePunch(deleteBtn.dataset.id);
-  }
-});
-
-saveEditedPunchBtn.addEventListener("click", async () => {
-  await saveEditedPunch();
-});
-
-postScheduleBtn.addEventListener("click", async () => {
-  await postEmployeeSchedule();
-});
-
-loadAdminSchedulesBtn.addEventListener("click", async () => {
-  await loadAdminSchedules();
-});
-
-loadMyScheduleBtn.addEventListener("click", async () => {
-  await loadMySchedule();
-});
-
-buildScheduleWeekBtn.addEventListener("click", () => {
-  buildScheduleWeekGrid();
-});
-
-scheduleWeekGrid.addEventListener("click", (event) => {
-  const dayButton = event.target.closest(".schedule-day-btn");
-
-  if (!dayButton) return;
-
-  document.querySelectorAll(".schedule-day-btn").forEach((button) => {
-    button.classList.remove("active-day");
-  });
-
-  dayButton.classList.add("active-day");
-
-  scheduleDate.value = dayButton.dataset.date;
-  selectedScheduleDayTitle.textContent = `${dayButton.dataset.day} · ${dayButton.dataset.display}`;
-  selectedScheduleDayBox.classList.remove("hidden");
-});
-
-document.getElementById("signupBtn").addEventListener("click", async () => {
-  const name = document.getElementById("signupName").value.trim();
-  const email = document.getElementById("signupEmail").value.trim().toLowerCase();
-  const password = document.getElementById("signupPassword").value;
-  const confirmPassword = document.getElementById("confirmPassword").value;
+$("signupBtn").addEventListener("click", async () => {
+  const name = $("signupName").value.trim();
+  const email = $("signupEmail").value.trim().toLowerCase();
+  const password = $("signupPassword").value;
+  const confirmPassword = $("confirmPassword").value;
 
   if (!name || !email || !password || !confirmPassword) {
     alert("Enter name, email, password, and confirm password.");
@@ -268,10 +171,7 @@ document.getElementById("signupBtn").addEventListener("click", async () => {
 
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    await saveEmployeeName(user.uid, email, name, true);
-
+    await saveEmployeeName(userCredential.user.uid, email, name, true);
     currentUserName = name;
     alert("Account created!");
   } catch (error) {
@@ -279,9 +179,9 @@ document.getElementById("signupBtn").addEventListener("click", async () => {
   }
 });
 
-document.getElementById("loginBtn").addEventListener("click", async () => {
-  const email = document.getElementById("email").value.trim().toLowerCase();
-  const password = document.getElementById("password").value;
+$("loginBtn").addEventListener("click", async () => {
+  const email = $("email").value.trim().toLowerCase();
+  const password = $("password").value;
 
   if (!email || !password) {
     alert("Enter your email and password.");
@@ -295,7 +195,39 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
   }
 });
 
-document.getElementById("saveNameBtn").addEventListener("click", async () => {
+$("logoutBtn").addEventListener("click", async () => {
+  await signOut(auth);
+});
+
+hamburgerBtn.addEventListener("click", openMenu);
+closeMenuBtn.addEventListener("click", closeMenu);
+menuOverlay.addEventListener("click", closeMenu);
+
+document.querySelectorAll(".menu-link").forEach((button) => {
+  button.addEventListener("click", async () => {
+    showPage(button.dataset.page);
+    closeMenu();
+
+    if (button.dataset.page === "schedulePage") await loadMyMonthlySchedule();
+    if (button.dataset.page === "timeOffPage") await loadMyTimeOffRequests();
+    if (button.dataset.page === "timeEditPage") await loadMyTimeEditRequests();
+    if (button.dataset.page === "historyPage") await loadMyHistory();
+    if (button.dataset.page === "signaturePage") await checkWeeklySignature();
+    if (button.dataset.page === "adminPostedSchedulesPage") await loadAdminSchedules();
+    if (button.dataset.page === "adminTimeOffPage") await loadPendingTimeOffRequests();
+    if (button.dataset.page === "adminTimeEditPage") await loadPendingTimeEditRequests();
+    if (button.dataset.page === "adminWeeklyRecordsPage") await loadWeeklyRecords();
+    if (button.dataset.page === "adminSignaturesPage") await loadWeeklySignatures();
+    if (button.dataset.page === "adminPunchEditorPage") await loadAdminPunchEditor();
+  });
+});
+
+$("clockInBtn").addEventListener("click", async () => savePunch("Clock In"));
+$("startLunchBtn").addEventListener("click", async () => savePunch("Start Lunch"));
+$("endLunchBtn").addEventListener("click", async () => savePunch("End Lunch"));
+$("clockOutBtn").addEventListener("click", async () => savePunch("Clock Out"));
+
+$("saveNameBtn").addEventListener("click", async () => {
   const user = auth.currentUser;
   const newName = settingsName.value.trim();
 
@@ -308,12 +240,10 @@ document.getElementById("saveNameBtn").addEventListener("click", async () => {
 
   try {
     const cleanEmail = user.email.toLowerCase().trim();
-
     await saveEmployeeName(user.uid, cleanEmail, newName, false);
 
     currentUserName = newName;
-    welcomeText.innerHTML = `Welcome, <span>${escapeHTML(currentUserName)}</span>`;
-    settingsModal.classList.add("hidden");
+    updateProfileUI(user);
 
     alert("Name updated!");
   } catch (error) {
@@ -321,7 +251,7 @@ document.getElementById("saveNameBtn").addEventListener("click", async () => {
   }
 });
 
-document.getElementById("resetPasswordBtn").addEventListener("click", async () => {
+$("resetPasswordBtn").addEventListener("click", async () => {
   const user = auth.currentUser;
 
   if (!user) return;
@@ -334,64 +264,519 @@ document.getElementById("resetPasswordBtn").addEventListener("click", async () =
   }
 });
 
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  await signOut(auth);
-});
+$("submitTimeEditBtn").addEventListener("click", submitTimeEditRequest);
+$("loadTimeEditRequestsBtn").addEventListener("click", loadPendingTimeEditRequests);
+$("loadRecordsBtn").addEventListener("click", loadWeeklyRecords);
+$("loadMyHistoryBtn").addEventListener("click", loadMyHistory);
+$("loadWeeklySignaturesBtn").addEventListener("click", loadWeeklySignatures);
+$("submitTimeOffBtn").addEventListener("click", submitTimeOffRequest);
+$("loadTimeOffRequestsBtn").addEventListener("click", loadPendingTimeOffRequests);
 
-document.getElementById("clockInBtn").addEventListener("click", async () => {
-  await savePunch("Clock In");
-});
-
-document.getElementById("startLunchBtn").addEventListener("click", async () => {
-  await savePunch("Start Lunch");
-});
-
-document.getElementById("endLunchBtn").addEventListener("click", async () => {
-  await savePunch("End Lunch");
-});
-
-document.getElementById("clockOutBtn").addEventListener("click", async () => {
-  await savePunch("Clock Out");
-});
-
-document.getElementById("submitTimeEditBtn").addEventListener("click", async () => {
-  await submitTimeEditRequest();
-});
-
-document.getElementById("loadTimeEditRequestsBtn").addEventListener("click", async () => {
-  await loadPendingTimeEditRequests();
-});
-
-document.getElementById("loadWeeklySignaturesBtn").addEventListener("click", async () => {
-  await loadWeeklySignatures();
-});
-
-submitSignatureBtn.addEventListener("click", async () => {
-  await submitWeeklySignature();
-});
+submitSignatureBtn.addEventListener("click", submitWeeklySignature);
 
 timeEditRequests.addEventListener("click", async (event) => {
   const approveBtn = event.target.closest(".approve-request-btn");
   const rejectBtn = event.target.closest(".reject-request-btn");
 
-  if (approveBtn) {
-    await approveTimeEditRequest(approveBtn.dataset.id);
+  if (approveBtn) await approveTimeEditRequest(approveBtn.dataset.id);
+  if (rejectBtn) await rejectTimeEditRequest(rejectBtn.dataset.id);
+});
+
+timeOffRequests.addEventListener("click", async (event) => {
+  const approveBtn = event.target.closest(".approve-timeoff-btn");
+  const rejectBtn = event.target.closest(".reject-timeoff-btn");
+
+  if (approveBtn) await approveTimeOffRequest(approveBtn.dataset.id);
+  if (rejectBtn) await rejectTimeOffRequest(rejectBtn.dataset.id);
+});
+
+buildScheduleWeekBtn.addEventListener("click", buildScheduleWeekGrid);
+postScheduleBtn.addEventListener("click", postEmployeeSchedule);
+$("loadAdminSchedulesBtn").addEventListener("click", loadAdminSchedules);
+$("loadAdminPunchesBtn").addEventListener("click", loadAdminPunchEditor);
+
+scheduleWeekGrid.addEventListener("click", (event) => {
+  const dayButton = event.target.closest(".schedule-day-btn");
+  if (!dayButton || dayButton.disabled) return;
+
+  document.querySelectorAll(".schedule-day-btn").forEach((button) => {
+    button.classList.remove("active-day");
+  });
+
+  dayButton.classList.add("active-day");
+
+  scheduleDate.value = dayButton.dataset.date;
+  selectedScheduleDayTitle.textContent = `${dayButton.dataset.day} · ${dayButton.dataset.display}`;
+  selectedScheduleDayBox.classList.remove("hidden");
+});
+
+adminPunchEditorRecords.addEventListener("click", async (event) => {
+  const editBtn = event.target.closest(".admin-edit-punch-btn");
+  const deleteBtn = event.target.closest(".admin-delete-punch-btn");
+
+  if (editBtn) openEditPunchModal(editBtn);
+  if (deleteBtn) await softDeletePunch(deleteBtn.dataset.id);
+});
+
+closeEditPunchBtn.addEventListener("click", () => {
+  editPunchModal.classList.add("hidden");
+});
+
+editPunchModal.addEventListener("click", (event) => {
+  if (event.target === editPunchModal) {
+    editPunchModal.classList.add("hidden");
+  }
+});
+
+saveEditedPunchBtn.addEventListener("click", saveEditedPunch);
+
+prevMonthBtn.addEventListener("click", async () => {
+  currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+  await loadMyMonthlySchedule();
+});
+
+nextMonthBtn.addEventListener("click", async () => {
+  currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+  await loadMyMonthlySchedule();
+});
+
+myScheduleCalendar.addEventListener("click", async (event) => {
+  const dayBtn = event.target.closest(".calendar-day");
+  if (!dayBtn || !dayBtn.dataset.date) return;
+  await showScheduleDetailsForDate(dayBtn.dataset.date);
+});
+
+function openMenu() {
+  sideMenu.classList.remove("hidden");
+  menuOverlay.classList.remove("hidden");
+}
+
+function closeMenu() {
+  sideMenu.classList.add("hidden");
+  menuOverlay.classList.add("hidden");
+}
+
+function showPage(pageId) {
+  document.querySelectorAll(".app-page").forEach((page) => {
+    page.classList.add("hidden");
+    page.classList.remove("active-page");
+  });
+
+  const selectedPage = $(pageId);
+
+  if (selectedPage) {
+    selectedPage.classList.remove("hidden");
+    selectedPage.classList.add("active-page");
   }
 
-  if (rejectBtn) {
-    await rejectTimeEditRequest(rejectBtn.dataset.id);
+  document.querySelectorAll(".menu-link").forEach((button) => {
+    button.classList.toggle("active-menu-link", button.dataset.page === pageId);
+  });
+}
+
+async function savePunch(type) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const cleanEmail = user.email.toLowerCase().trim();
+
+  if (!currentUserName) {
+    currentUserName = await getEmployeeName(user.uid, cleanEmail);
   }
-});
 
-document.getElementById("loadRecordsBtn").addEventListener("click", async () => {
-  await loadWeeklyRecords();
-});
+  try {
+    await addDoc(collection(db, "punches"), {
+      employeeId: user.uid,
+      employeeName: currentUserName || cleanEmail,
+      employeeEmail: cleanEmail,
+      type,
+      time: serverTimestamp(),
+      source: "Employee Clock Button",
+      deleted: false
+    });
 
-document.getElementById("loadMyHistoryBtn").addEventListener("click", async () => {
-  await loadMyHistory();
-});
+    alert(`${type} saved!`);
+    await loadClockStatus();
+  } catch (error) {
+    alert(error.message);
+  }
+}
 
-function buildScheduleWeekGrid() {
+async function loadClockStatus() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  try {
+    const cleanEmail = user.email.toLowerCase().trim();
+    const q = query(collection(db, "punches"), orderBy("time", "desc"));
+    const snapshot = await getDocs(q);
+
+    let lastPunch = null;
+
+    snapshot.forEach((docSnap) => {
+      if (lastPunch) return;
+
+      const data = docSnap.data();
+      if (data.deleted === true) return;
+      if (!data.employeeEmail || !data.time) return;
+      if (data.employeeEmail.toLowerCase().trim() !== cleanEmail) return;
+
+      lastPunch = data;
+    });
+
+    if (!lastPunch) {
+      clockStatusText.textContent = "Ready";
+      lastPunchText.textContent = "No recent punch found.";
+      return;
+    }
+
+    clockStatusText.textContent = lastPunch.type;
+
+    const dateObj = lastPunch.time.toDate();
+
+    lastPunchText.textContent = `Last punch: ${dateObj.toLocaleString([], {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    })}`;
+  } catch (error) {
+    clockStatusText.textContent = "Unable to load";
+    lastPunchText.textContent = "Could not load recent punch.";
+  }
+}
+
+async function submitTimeOffRequest() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const startDate = timeOffStartDate.value;
+  const endDate = timeOffEndDate.value;
+  const reason = timeOffReason.value.trim();
+
+  if (!startDate || !endDate || !reason) {
+    alert("Enter start date, end date, and reason.");
+    return;
+  }
+
+  if (new Date(`${endDate}T00:00`) < new Date(`${startDate}T00:00`)) {
+    alert("End date cannot be before start date.");
+    return;
+  }
+
+  try {
+    const cleanEmail = user.email.toLowerCase().trim();
+
+    if (!currentUserName) {
+      currentUserName = await getEmployeeName(user.uid, cleanEmail);
+    }
+
+    await addDoc(collection(db, "timeOffRequests"), {
+      employeeId: user.uid,
+      employeeName: currentUserName || cleanEmail,
+      employeeEmail: cleanEmail,
+      startDate,
+      endDate,
+      reason,
+      status: "Pending",
+      requestedAt: serverTimestamp()
+    });
+
+    timeOffReason.value = "";
+
+    alert("Time off request submitted.");
+    await loadMyTimeOffRequests();
+    await loadMyMonthlySchedule();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function loadMyTimeOffRequests() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  try {
+    const cleanEmail = user.email.toLowerCase().trim();
+    const q = query(collection(db, "timeOffRequests"), orderBy("requestedAt", "desc"));
+    const snapshot = await getDocs(q);
+
+    let html = "";
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+
+      if (!data.employeeEmail) return;
+      if (data.employeeEmail.toLowerCase().trim() !== cleanEmail) return;
+
+      html += buildMyTimeOffCard(data);
+    });
+
+    myTimeOffRequests.innerHTML = html || `<p class="info-box">No time off requests found.</p>`;
+  } catch (error) {
+    myTimeOffRequests.innerHTML = `<p class="info-box">Unable to load time off requests.</p>`;
+  }
+}
+
+async function loadPendingTimeOffRequests() {
+  try {
+    const q = query(collection(db, "timeOffRequests"), orderBy("requestedAt", "desc"));
+    const snapshot = await getDocs(q);
+
+    let html = "";
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      if (data.status !== "Pending") return;
+      html += buildAdminTimeOffCard(docSnap.id, data);
+    });
+
+    timeOffRequests.innerHTML = html || `<p class="info-box">No pending time off requests.</p>`;
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function approveTimeOffRequest(requestId) {
+  const adminUser = auth.currentUser;
+  if (!adminUser) return;
+
+  const confirmApprove = confirm("Approve this time off request?");
+  if (!confirmApprove) return;
+
+  try {
+    const requestRef = doc(db, "timeOffRequests", requestId);
+
+    await updateDoc(requestRef, {
+      status: "Approved",
+      reviewedBy: adminUser.email.toLowerCase().trim(),
+      reviewedAt: serverTimestamp()
+    });
+
+    alert("Time off request approved.");
+
+    await loadPendingTimeOffRequests();
+    await loadMyMonthlySchedule();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function rejectTimeOffRequest(requestId) {
+  const adminUser = auth.currentUser;
+  if (!adminUser) return;
+
+  const confirmReject = confirm("Reject this time off request?");
+  if (!confirmReject) return;
+
+  try {
+    const requestRef = doc(db, "timeOffRequests", requestId);
+
+    await updateDoc(requestRef, {
+      status: "Rejected",
+      reviewedBy: adminUser.email.toLowerCase().trim(),
+      reviewedAt: serverTimestamp()
+    });
+
+    alert("Time off request rejected.");
+
+    await loadPendingTimeOffRequests();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function buildMyTimeOffCard(data) {
+  const statusClass = getStatusClass(data.status);
+
+  return `
+    <div class="request-card">
+      <h3>Time Off</h3>
+      <p><strong>Dates:</strong> ${escapeHTML(formatDateDisplay(data.startDate))} - ${escapeHTML(formatDateDisplay(data.endDate))}</p>
+      <p><strong>Reason:</strong> ${escapeHTML(data.reason)}</p>
+      <span class="status-pill ${statusClass}">${escapeHTML(data.status)}</span>
+    </div>
+  `;
+}
+
+function buildAdminTimeOffCard(requestId, data) {
+  return `
+    <div class="request-card">
+      <h3>${escapeHTML(data.employeeName || data.employeeEmail)}</h3>
+      <p><strong>Email:</strong> ${escapeHTML(data.employeeEmail)}</p>
+      <p><strong>Dates:</strong> ${escapeHTML(formatDateDisplay(data.startDate))} - ${escapeHTML(formatDateDisplay(data.endDate))}</p>
+      <p><strong>Reason:</strong> ${escapeHTML(data.reason)}</p>
+      <span class="status-pill status-pending">Pending</span>
+
+      <div class="request-actions">
+        <button class="approve-btn approve-timeoff-btn" data-id="${requestId}">Approve</button>
+        <button class="danger-btn reject-timeoff-btn" data-id="${requestId}">Reject</button>
+      </div>
+    </div>
+  `;
+}
+
+async function loadMyMonthlySchedule() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  try {
+    const cleanEmail = user.email.toLowerCase().trim();
+
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+
+    myScheduleMonthTitle.textContent = currentCalendarDate.toLocaleDateString([], {
+      month: "long",
+      year: "numeric"
+    });
+
+    const schedules = await getSchedulesForEmployee(cleanEmail);
+    const timeOff = await getTimeOffForEmployee(cleanEmail);
+
+    buildMonthCalendar(year, month, schedules, timeOff);
+  } catch (error) {
+    myScheduleCalendar.innerHTML = `<p class="info-box">Unable to load schedule calendar.</p>`;
+  }
+}
+
+function buildMonthCalendar(year, month, schedules, timeOff) {
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+
+  const startBlankDays = firstDay.getDay();
+  const totalDays = lastDay.getDate();
+
+  const scheduledDates = new Set(schedules.map((item) => item.date));
+  const approvedOffDates = new Set();
+
+  timeOff.forEach((request) => {
+    if (request.status !== "Approved") return;
+
+    getDatesBetween(request.startDate, request.endDate).forEach((dateValue) => {
+      approvedOffDates.add(dateValue);
+    });
+  });
+
+  let html = `
+    <div class="calendar-weekdays">
+      <span>Sun</span>
+      <span>Mon</span>
+      <span>Tue</span>
+      <span>Wed</span>
+      <span>Thu</span>
+      <span>Fri</span>
+      <span>Sat</span>
+    </div>
+    <div class="calendar-grid">
+  `;
+
+  for (let i = 0; i < startBlankDays; i++) {
+    html += `<button class="calendar-day empty-calendar-day" disabled></button>`;
+  }
+
+  for (let day = 1; day <= totalDays; day++) {
+    const dateValue = formatDateInputValue(new Date(year, month, day));
+    const hasSchedule = scheduledDates.has(dateValue);
+    const hasApprovedOff = approvedOffDates.has(dateValue);
+
+    html += `
+      <button class="calendar-day" data-date="${dateValue}">
+        <span class="calendar-date-number">${day}</span>
+        <span class="calendar-dots">
+          ${hasSchedule ? `<span class="schedule-dot"></span>` : ""}
+          ${hasApprovedOff ? `<span class="timeoff-dot"></span>` : ""}
+        </span>
+      </button>
+    `;
+  }
+
+  html += `</div>`;
+
+  myScheduleCalendar.innerHTML = html;
+}
+
+async function showScheduleDetailsForDate(dateValue) {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const cleanEmail = user.email.toLowerCase().trim();
+  const schedules = await getSchedulesForEmployee(cleanEmail);
+  const timeOff = await getTimeOffForEmployee(cleanEmail);
+
+  const daySchedules = schedules.filter((item) => item.date === dateValue);
+  const approvedOff = timeOff.filter((item) => {
+    if (item.status !== "Approved") return false;
+    return dateValue >= item.startDate && dateValue <= item.endDate;
+  });
+
+  let html = `<div class="selected-date-card"><h3>${escapeHTML(formatDateDisplay(dateValue))}</h3>`;
+
+  if (daySchedules.length === 0 && approvedOff.length === 0) {
+    html += `<p class="info-box">No shift or approved time off for this day.</p>`;
+  }
+
+  daySchedules.forEach((shift) => {
+    html += `
+      <div class="schedule-card">
+        <p><strong>Shift:</strong> ${formatTimeFrom24Hour(shift.startTime)} - ${formatTimeFrom24Hour(shift.endTime)}</p>
+        <p><strong>Location:</strong> ${escapeHTML(shift.location || "Not listed")}</p>
+        <p><strong>Notes:</strong> ${escapeHTML(shift.notes || "No notes")}</p>
+      </div>
+    `;
+  });
+
+  approvedOff.forEach((request) => {
+    html += `
+      <div class="schedule-card timeoff-card">
+        <p><strong>Approved Time Off</strong></p>
+        <p>${escapeHTML(request.reason || "No reason listed")}</p>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+
+  selectedScheduleDetails.innerHTML = html;
+}
+
+async function getSchedulesForEmployee(email) {
+  const q = query(collection(db, "schedules"), orderBy("scheduleDateTime", "asc"));
+  const snapshot = await getDocs(q);
+  const schedules = [];
+
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+
+    if (data.deleted === true) return;
+    if (!data.employeeEmail) return;
+    if (data.employeeEmail.toLowerCase().trim() !== email) return;
+
+    schedules.push(data);
+  });
+
+  return schedules;
+}
+
+async function getTimeOffForEmployee(email) {
+  const q = query(collection(db, "timeOffRequests"), orderBy("requestedAt", "desc"));
+  const snapshot = await getDocs(q);
+  const requests = [];
+
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+
+    if (!data.employeeEmail) return;
+    if (data.employeeEmail.toLowerCase().trim() !== email) return;
+
+    requests.push(data);
+  });
+
+  return requests;
+}
+
+async function buildScheduleWeekGrid() {
   const selectedWeek = adminScheduleBuilderWeekPicker.value;
 
   if (!selectedWeek) {
@@ -408,6 +793,7 @@ function buildScheduleWeekGrid() {
   }
 
   const { startOfWeek } = getWeekDateRange(selectedWeek);
+  const approvedOffDates = await getApprovedTimeOffDates(employeeEmail);
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   let html = "";
@@ -423,16 +809,20 @@ function buildScheduleWeekGrid() {
       year: "numeric"
     });
 
+    const isOff = approvedOffDates.has(dateValue);
+
     html += `
       <button
         type="button"
-        class="schedule-day-btn"
+        class="schedule-day-btn ${isOff ? "blocked-day" : ""}"
         data-date="${dateValue}"
         data-day="${dayNames[i]}"
         data-display="${displayDate}"
+        ${isOff ? "disabled" : ""}
       >
         <strong>${dayNames[i]}</strong>
         <span>${displayDate}</span>
+        ${isOff ? `<span class="blocked-note">Approved Time Off</span>` : ""}
       </button>
     `;
   }
@@ -443,7 +833,6 @@ function buildScheduleWeekGrid() {
 
 async function postEmployeeSchedule() {
   const adminUser = auth.currentUser;
-
   if (!adminUser) return;
 
   const employeeEmail = scheduleEmployeeEmail.value.trim().toLowerCase();
@@ -456,6 +845,13 @@ async function postEmployeeSchedule() {
 
   if (!employeeEmail || !employeeName || !dateValue || !startTimeValue || !endTimeValue) {
     alert("Enter employee email, employee name, choose a day, start time, and end time.");
+    return;
+  }
+
+  const approvedOffDates = await getApprovedTimeOffDates(employeeEmail);
+
+  if (approvedOffDates.has(dateValue)) {
+    alert("This employee has approved time off on this day. You cannot schedule them.");
     return;
   }
 
@@ -489,13 +885,33 @@ async function postEmployeeSchedule() {
     scheduleLocation.value = "";
     scheduleNotes.value = "";
 
-    alert("Schedule posted for this day. You can click another day and keep using the same employee info.");
+    alert("Schedule posted for this day.");
 
     adminScheduleWeekPicker.value = weekValue;
     await loadAdminSchedules();
   } catch (error) {
     alert(error.message);
   }
+}
+
+async function getApprovedTimeOffDates(employeeEmail) {
+  const q = query(collection(db, "timeOffRequests"), orderBy("requestedAt", "desc"));
+  const snapshot = await getDocs(q);
+  const dates = new Set();
+
+  snapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+
+    if (data.status !== "Approved") return;
+    if (!data.employeeEmail) return;
+    if (data.employeeEmail.toLowerCase().trim() !== employeeEmail) return;
+
+    getDatesBetween(data.startDate, data.endDate).forEach((dateValue) => {
+      dates.add(dateValue);
+    });
+  });
+
+  return dates;
 }
 
 async function loadAdminSchedules() {
@@ -530,45 +946,6 @@ async function loadAdminSchedules() {
   }
 }
 
-async function loadMySchedule() {
-  const user = auth.currentUser;
-
-  if (!user) return;
-
-  myScheduleRecords.innerHTML = "";
-
-  const selectedWeek = myScheduleWeekPicker.value;
-
-  if (!selectedWeek) {
-    alert("Please choose a week first.");
-    return;
-  }
-
-  try {
-    const cleanEmail = user.email.toLowerCase().trim();
-    const q = query(collection(db, "schedules"), orderBy("scheduleDateTime", "asc"));
-    const snapshot = await getDocs(q);
-
-    let html = "";
-
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-
-      if (data.deleted === true) return;
-      if (!data.employeeEmail) return;
-      if (data.employeeEmail.toLowerCase().trim() !== cleanEmail) return;
-      if (data.week !== selectedWeek) return;
-
-      html += buildScheduleCard(data, false);
-    });
-
-    myScheduleRecords.innerHTML =
-      html || `<p class="info-box">No schedule posted for this week.</p>`;
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
 function buildScheduleCard(data, showEmployee) {
   return `
     <div class="schedule-card">
@@ -577,9 +954,340 @@ function buildScheduleCard(data, showEmployee) {
       ${showEmployee ? `<p><strong>Email:</strong> ${escapeHTML(data.employeeEmail)}</p>` : ""}
       <p><strong>Time:</strong> ${formatTimeFrom24Hour(data.startTime)} - ${formatTimeFrom24Hour(data.endTime)}</p>
       <p><strong>Job Site:</strong> ${escapeHTML(data.location || "Not listed")}</p>
-      <p><strong>Work Notes:</strong> ${escapeHTML(data.notes || "No notes")}</p>
+      <p><strong>Shift Notes:</strong> ${escapeHTML(data.notes || "No notes")}</p>
     </div>
   `;
+}
+
+async function submitTimeEditRequest() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const dateValue = editDate.value;
+  const timeValue = editTime.value;
+  const typeValue = editType.value;
+  const reasonValue = editReason.value.trim();
+
+  if (!dateValue || !timeValue || !typeValue || !reasonValue) {
+    alert("Please enter the date, time, punch type, and reason.");
+    return;
+  }
+
+  const requestedDateTime = new Date(`${dateValue}T${timeValue}`);
+
+  if (Number.isNaN(requestedDateTime.getTime())) {
+    alert("Please enter a valid date and time.");
+    return;
+  }
+
+  try {
+    const cleanEmail = user.email.toLowerCase().trim();
+
+    if (!currentUserName) {
+      currentUserName = await getEmployeeName(user.uid, cleanEmail);
+    }
+
+    await addDoc(collection(db, "timeEditRequests"), {
+      employeeId: user.uid,
+      employeeName: currentUserName || cleanEmail,
+      employeeEmail: cleanEmail,
+      requestedType: typeValue,
+      requestedDate: dateValue,
+      requestedTime: timeValue,
+      requestedDateTime,
+      reason: reasonValue,
+      status: "Pending",
+      requestedAt: serverTimestamp()
+    });
+
+    editReason.value = "";
+    alert("Time edit request submitted for admin approval.");
+
+    await loadMyTimeEditRequests();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function loadMyTimeEditRequests() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  try {
+    const cleanEmail = user.email.toLowerCase().trim();
+    const q = query(collection(db, "timeEditRequests"), orderBy("requestedAt", "desc"));
+    const snapshot = await getDocs(q);
+
+    let html = "";
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+
+      if (!data.employeeEmail) return;
+      if (data.employeeEmail.toLowerCase().trim() !== cleanEmail) return;
+
+      html += buildMyRequestCard(data);
+    });
+
+    myTimeEditRequests.innerHTML = html || `<p class="info-box">No time edit requests found.</p>`;
+  } catch (error) {
+    myTimeEditRequests.innerHTML = `<p class="info-box">Unable to load time edit requests.</p>`;
+  }
+}
+
+async function loadPendingTimeEditRequests() {
+  try {
+    const q = query(collection(db, "timeEditRequests"), orderBy("requestedAt", "desc"));
+    const snapshot = await getDocs(q);
+
+    let html = "";
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+
+      if (data.status !== "Pending") return;
+
+      html += buildAdminRequestCard(docSnap.id, data);
+    });
+
+    timeEditRequests.innerHTML = html || `<p class="info-box">No pending time edit requests.</p>`;
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function approveTimeEditRequest(requestId) {
+  const adminUser = auth.currentUser;
+  if (!adminUser) return;
+
+  const confirmApprove = confirm("Approve this time edit request and add it to the employee punch records?");
+  if (!confirmApprove) return;
+
+  try {
+    const requestRef = doc(db, "timeEditRequests", requestId);
+    const requestSnap = await getDoc(requestRef);
+
+    if (!requestSnap.exists()) {
+      alert("Request not found.");
+      return;
+    }
+
+    const requestData = requestSnap.data();
+
+    if (requestData.status !== "Pending") {
+      alert("This request has already been handled.");
+      return;
+    }
+
+    const approvedDateTime = requestData.requestedDateTime.toDate
+      ? requestData.requestedDateTime.toDate()
+      : new Date(requestData.requestedDateTime);
+
+    await addDoc(collection(db, "punches"), {
+      employeeId: requestData.employeeId,
+      employeeName: requestData.employeeName,
+      employeeEmail: requestData.employeeEmail,
+      type: requestData.requestedType,
+      time: approvedDateTime,
+      source: "Admin Approved Time Edit",
+      timeEditRequestId: requestId,
+      approvedBy: adminUser.email.toLowerCase().trim(),
+      approvedAt: serverTimestamp(),
+      deleted: false
+    });
+
+    await updateDoc(requestRef, {
+      status: "Approved",
+      reviewedBy: adminUser.email.toLowerCase().trim(),
+      reviewedAt: serverTimestamp()
+    });
+
+    alert("Time edit approved and added to punch records.");
+
+    await loadPendingTimeEditRequests();
+    await loadWeeklyRecords();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function rejectTimeEditRequest(requestId) {
+  const adminUser = auth.currentUser;
+  if (!adminUser) return;
+
+  const confirmReject = confirm("Reject this time edit request?");
+  if (!confirmReject) return;
+
+  try {
+    await updateDoc(doc(db, "timeEditRequests", requestId), {
+      status: "Rejected",
+      reviewedBy: adminUser.email.toLowerCase().trim(),
+      reviewedAt: serverTimestamp()
+    });
+
+    alert("Time edit request rejected.");
+    await loadPendingTimeEditRequests();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function buildMyRequestCard(data) {
+  const statusClass = getStatusClass(data.status);
+
+  return `
+    <div class="request-card">
+      <h3>${escapeHTML(data.requestedType)}</h3>
+      <p><strong>Date:</strong> ${escapeHTML(data.requestedDate)}</p>
+      <p><strong>Time:</strong> ${formatTimeFrom24Hour(data.requestedTime)}</p>
+      <p><strong>Reason:</strong> ${escapeHTML(data.reason)}</p>
+      <span class="status-pill ${statusClass}">${escapeHTML(data.status)}</span>
+    </div>
+  `;
+}
+
+function buildAdminRequestCard(requestId, data) {
+  return `
+    <div class="request-card">
+      <h3>${escapeHTML(data.employeeName || data.employeeEmail)}</h3>
+      <p><strong>Email:</strong> ${escapeHTML(data.employeeEmail)}</p>
+      <p><strong>Requested Punch:</strong> ${escapeHTML(data.requestedType)}</p>
+      <p><strong>Date:</strong> ${escapeHTML(data.requestedDate)}</p>
+      <p><strong>Time:</strong> ${formatTimeFrom24Hour(data.requestedTime)}</p>
+      <p><strong>Reason:</strong> ${escapeHTML(data.reason)}</p>
+      <span class="status-pill status-pending">Pending</span>
+
+      <div class="request-actions">
+        <button class="approve-btn approve-request-btn" data-id="${requestId}">Approve</button>
+        <button class="danger-btn reject-request-btn" data-id="${requestId}">Reject</button>
+      </div>
+    </div>
+  `;
+}
+
+async function submitWeeklySignature() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const typedSignature = signatureInput.value.trim();
+
+  if (!typedSignature) {
+    alert("Please type your full name before submitting.");
+    return;
+  }
+
+  const cleanEmail = user.email.toLowerCase().trim();
+  const currentWeek = getCurrentWeekValue();
+  const signatureId = `${user.uid}_${currentWeek}`;
+
+  if (!currentUserName) {
+    currentUserName = await getEmployeeName(user.uid, cleanEmail);
+  }
+
+  try {
+    await setDoc(doc(db, "weeklySignatures", signatureId), {
+      employeeId: user.uid,
+      employeeName: currentUserName || cleanEmail,
+      employeeEmail: cleanEmail,
+      week: currentWeek,
+      signature: typedSignature,
+      signedAt: serverTimestamp()
+    });
+
+    signatureInput.value = "";
+    await checkWeeklySignature();
+
+    alert("Weekly e-signature submitted.");
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function checkWeeklySignature() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const currentWeek = getCurrentWeekValue();
+  const signatureId = `${user.uid}_${currentWeek}`;
+
+  try {
+    const signatureDoc = await getDoc(doc(db, "weeklySignatures", signatureId));
+
+    if (signatureDoc.exists()) {
+      const data = signatureDoc.data();
+
+      signatureStatus.className = "info-box signature-complete";
+      signatureStatus.innerHTML = `
+        Signed for this week.<br>
+        <strong>Signature:</strong> ${escapeHTML(data.signature)}
+      `;
+
+      signatureInput.disabled = true;
+      submitSignatureBtn.disabled = true;
+      submitSignatureBtn.textContent = "Signature Complete";
+    } else {
+      signatureStatus.className = "info-box signature-needed";
+      signatureStatus.textContent = "You have not signed for this week yet.";
+
+      signatureInput.disabled = false;
+      submitSignatureBtn.disabled = false;
+      submitSignatureBtn.textContent = "Submit Weekly Signature";
+    }
+  } catch (error) {
+    signatureStatus.className = "info-box";
+    signatureStatus.textContent = "Unable to check signature status.";
+  }
+}
+
+async function loadWeeklySignatures() {
+  weeklySignatures.innerHTML = "";
+
+  const selectedWeek = weekPicker.value;
+
+  if (!selectedWeek) {
+    alert("Please choose a week first.");
+    return;
+  }
+
+  try {
+    const q = query(collection(db, "weeklySignatures"), orderBy("signedAt", "desc"));
+    const snapshot = await getDocs(q);
+
+    let html = "";
+
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+
+      if (data.week !== selectedWeek) return;
+
+      let signedAtText = "Signed";
+
+      if (data.signedAt && data.signedAt.toDate) {
+        signedAtText = data.signedAt.toDate().toLocaleString([], {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+      }
+
+      html += `
+        <div class="request-card">
+          <h3>${escapeHTML(data.employeeName || data.employeeEmail)}</h3>
+          <p><strong>Email:</strong> ${escapeHTML(data.employeeEmail)}</p>
+          <p><strong>Week:</strong> ${escapeHTML(data.week)}</p>
+          <p><strong>Signature:</strong> ${escapeHTML(data.signature)}</p>
+          <p><strong>Signed At:</strong> ${escapeHTML(signedAtText)}</p>
+          <span class="status-pill status-approved">Signed</span>
+        </div>
+      `;
+    });
+
+    weeklySignatures.innerHTML = html || `<p class="info-box">No signatures found for this week.</p>`;
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 async function loadWeeklyRecords() {
@@ -655,7 +1363,6 @@ async function loadMyHistory() {
   myHistoryRecords.innerHTML = "";
 
   const user = auth.currentUser;
-
   if (!user) return;
 
   const selectedWeek = myWeekPicker.value;
@@ -680,10 +1387,7 @@ async function loadMyHistory() {
 
       if (data.deleted === true) return;
       if (!data.time || !data.employeeEmail) return;
-
-      const punchEmail = data.employeeEmail.toLowerCase().trim();
-
-      if (punchEmail !== cleanEmail) return;
+      if (data.employeeEmail.toLowerCase().trim() !== cleanEmail) return;
 
       const dateObj = data.time.toDate();
 
@@ -822,7 +1526,6 @@ function openEditPunchModal(button) {
 
 async function saveEditedPunch() {
   const adminUser = auth.currentUser;
-
   if (!adminUser) return;
 
   const punchId = editingPunchId.value;
@@ -843,13 +1546,10 @@ async function saveEditedPunch() {
   }
 
   const confirmEdit = confirm("Save changes to this employee punch?");
-
   if (!confirmEdit) return;
 
   try {
-    const punchRef = doc(db, "punches", punchId);
-
-    await updateDoc(punchRef, {
+    await updateDoc(doc(db, "punches", punchId), {
       type: typeValue,
       time: newDateTime,
       source: "Admin Modified Punch",
@@ -863,13 +1563,8 @@ async function saveEditedPunch() {
 
     await loadAdminPunchEditor();
 
-    if (weekPicker.value) {
-      await loadWeeklyRecords();
-    }
-
-    if (myWeekPicker.value) {
-      await loadMyHistory();
-    }
+    if (weekPicker.value) await loadWeeklyRecords();
+    if (myWeekPicker.value) await loadMyHistory();
   } catch (error) {
     alert(error.message);
   }
@@ -877,7 +1572,6 @@ async function saveEditedPunch() {
 
 async function softDeletePunch(punchId) {
   const adminUser = auth.currentUser;
-
   if (!adminUser) return;
 
   const confirmDelete = confirm(
@@ -887,9 +1581,7 @@ async function softDeletePunch(punchId) {
   if (!confirmDelete) return;
 
   try {
-    const punchRef = doc(db, "punches", punchId);
-
-    await updateDoc(punchRef, {
+    await updateDoc(doc(db, "punches", punchId), {
       deleted: true,
       deletedBy: adminUser.email.toLowerCase().trim(),
       deletedAt: serverTimestamp()
@@ -899,371 +1591,10 @@ async function softDeletePunch(punchId) {
 
     await loadAdminPunchEditor();
 
-    if (weekPicker.value) {
-      await loadWeeklyRecords();
-    }
-
-    if (myWeekPicker.value) {
-      await loadMyHistory();
-    }
+    if (weekPicker.value) await loadWeeklyRecords();
+    if (myWeekPicker.value) await loadMyHistory();
   } catch (error) {
     alert(error.message);
-  }
-}
-
-async function submitTimeEditRequest() {
-  const user = auth.currentUser;
-
-  if (!user) return;
-
-  const dateValue = editDate.value;
-  const timeValue = editTime.value;
-  const typeValue = editType.value;
-  const reasonValue = editReason.value.trim();
-
-  if (!dateValue || !timeValue || !typeValue || !reasonValue) {
-    alert("Please enter the date, time, punch type, and reason.");
-    return;
-  }
-
-  const requestedDateTime = new Date(`${dateValue}T${timeValue}`);
-
-  if (Number.isNaN(requestedDateTime.getTime())) {
-    alert("Please enter a valid date and time.");
-    return;
-  }
-
-  try {
-    const cleanEmail = user.email.toLowerCase().trim();
-
-    if (!currentUserName) {
-      currentUserName = await getEmployeeName(user.uid, cleanEmail);
-    }
-
-    await addDoc(collection(db, "timeEditRequests"), {
-      employeeId: user.uid,
-      employeeName: currentUserName || cleanEmail,
-      employeeEmail: cleanEmail,
-      requestedType: typeValue,
-      requestedDate: dateValue,
-      requestedTime: timeValue,
-      requestedDateTime: requestedDateTime,
-      reason: reasonValue,
-      status: "Pending",
-      requestedAt: serverTimestamp()
-    });
-
-    editReason.value = "";
-    alert("Time edit request submitted for admin approval.");
-
-    await loadMyTimeEditRequests();
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-async function loadMyTimeEditRequests() {
-  const user = auth.currentUser;
-
-  if (!user) return;
-
-  try {
-    const cleanEmail = user.email.toLowerCase().trim();
-    const q = query(collection(db, "timeEditRequests"), orderBy("requestedAt", "desc"));
-    const snapshot = await getDocs(q);
-
-    let html = "";
-
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-
-      if (!data.employeeEmail) return;
-
-      if (data.employeeEmail.toLowerCase().trim() !== cleanEmail) return;
-
-      html += buildMyRequestCard(data);
-    });
-
-    myTimeEditRequests.innerHTML = html || `<p class="info-box">No time edit requests found.</p>`;
-  } catch (error) {
-    myTimeEditRequests.innerHTML = `<p class="info-box">Unable to load time edit requests.</p>`;
-  }
-}
-
-async function loadPendingTimeEditRequests() {
-  try {
-    const q = query(collection(db, "timeEditRequests"), orderBy("requestedAt", "desc"));
-    const snapshot = await getDocs(q);
-
-    let html = "";
-
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-
-      if (data.status !== "Pending") return;
-
-      html += buildAdminRequestCard(docSnap.id, data);
-    });
-
-    timeEditRequests.innerHTML = html || `<p class="info-box">No pending time edit requests.</p>`;
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-async function loadWeeklySignatures() {
-  weeklySignatures.innerHTML = "";
-
-  const selectedWeek = weekPicker.value;
-
-  if (!selectedWeek) {
-    alert("Please choose a week first.");
-    return;
-  }
-
-  try {
-    const q = query(collection(db, "weeklySignatures"), orderBy("signedAt", "desc"));
-    const snapshot = await getDocs(q);
-
-    let html = "";
-
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-
-      if (data.week !== selectedWeek) return;
-
-      let signedAtText = "Signed";
-
-      if (data.signedAt && data.signedAt.toDate) {
-        signedAtText = data.signedAt.toDate().toLocaleString([], {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit"
-        });
-      }
-
-      html += `
-        <div class="request-card">
-          <h3>${escapeHTML(data.employeeName || data.employeeEmail)}</h3>
-          <p><strong>Email:</strong> ${escapeHTML(data.employeeEmail)}</p>
-          <p><strong>Week:</strong> ${escapeHTML(data.week)}</p>
-          <p><strong>Signature:</strong> ${escapeHTML(data.signature)}</p>
-          <p><strong>Signed At:</strong> ${escapeHTML(signedAtText)}</p>
-          <span class="status-pill status-approved">Signed</span>
-        </div>
-      `;
-    });
-
-    weeklySignatures.innerHTML = html || `<p class="info-box">No signatures found for this week.</p>`;
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-async function approveTimeEditRequest(requestId) {
-  const adminUser = auth.currentUser;
-
-  if (!adminUser) return;
-
-  const confirmApprove = confirm("Approve this time edit request and add it to the employee punch records?");
-
-  if (!confirmApprove) return;
-
-  try {
-    const requestRef = doc(db, "timeEditRequests", requestId);
-    const requestSnap = await getDoc(requestRef);
-
-    if (!requestSnap.exists()) {
-      alert("Request not found.");
-      return;
-    }
-
-    const requestData = requestSnap.data();
-
-    if (requestData.status !== "Pending") {
-      alert("This request has already been handled.");
-      return;
-    }
-
-    const approvedDateTime = requestData.requestedDateTime.toDate
-      ? requestData.requestedDateTime.toDate()
-      : new Date(requestData.requestedDateTime);
-
-    await addDoc(collection(db, "punches"), {
-      employeeId: requestData.employeeId,
-      employeeName: requestData.employeeName,
-      employeeEmail: requestData.employeeEmail,
-      type: requestData.requestedType,
-      time: approvedDateTime,
-      source: "Admin Approved Time Edit",
-      timeEditRequestId: requestId,
-      approvedBy: adminUser.email.toLowerCase().trim(),
-      approvedAt: serverTimestamp(),
-      deleted: false
-    });
-
-    await updateDoc(requestRef, {
-      status: "Approved",
-      reviewedBy: adminUser.email.toLowerCase().trim(),
-      reviewedAt: serverTimestamp()
-    });
-
-    alert("Time edit approved and added to punch records.");
-
-    await loadPendingTimeEditRequests();
-    await loadWeeklyRecords();
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-async function rejectTimeEditRequest(requestId) {
-  const adminUser = auth.currentUser;
-
-  if (!adminUser) return;
-
-  const confirmReject = confirm("Reject this time edit request?");
-
-  if (!confirmReject) return;
-
-  try {
-    const requestRef = doc(db, "timeEditRequests", requestId);
-
-    await updateDoc(requestRef, {
-      status: "Rejected",
-      reviewedBy: adminUser.email.toLowerCase().trim(),
-      reviewedAt: serverTimestamp()
-    });
-
-    alert("Time edit request rejected.");
-
-    await loadPendingTimeEditRequests();
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-async function submitWeeklySignature() {
-  const user = auth.currentUser;
-
-  if (!user) return;
-
-  const typedSignature = signatureInput.value.trim();
-
-  if (!typedSignature) {
-    alert("Please type your full name before submitting.");
-    return;
-  }
-
-  const cleanEmail = user.email.toLowerCase().trim();
-  const currentWeek = getCurrentWeekValue();
-  const signatureId = `${user.uid}_${currentWeek}`;
-
-  if (!currentUserName) {
-    currentUserName = await getEmployeeName(user.uid, cleanEmail);
-  }
-
-  try {
-    await setDoc(doc(db, "weeklySignatures", signatureId), {
-      employeeId: user.uid,
-      employeeName: currentUserName || cleanEmail,
-      employeeEmail: cleanEmail,
-      week: currentWeek,
-      signature: typedSignature,
-      signedAt: serverTimestamp()
-    });
-
-    signatureInput.value = "";
-    await checkWeeklySignature();
-
-    alert("Weekly e-signature submitted.");
-  } catch (error) {
-    alert(error.message);
-  }
-}
-
-async function checkWeeklySignature() {
-  const user = auth.currentUser;
-
-  if (!user) return;
-
-  const currentWeek = getCurrentWeekValue();
-  const signatureId = `${user.uid}_${currentWeek}`;
-
-  try {
-    const signatureDoc = await getDoc(doc(db, "weeklySignatures", signatureId));
-
-    if (signatureDoc.exists()) {
-      const data = signatureDoc.data();
-
-      signatureStatus.className = "info-box signature-complete";
-      signatureStatus.innerHTML = `
-        Signed for this week.<br>
-        <strong>Signature:</strong> ${escapeHTML(data.signature)}
-      `;
-
-      signatureInput.disabled = true;
-      submitSignatureBtn.disabled = true;
-      submitSignatureBtn.textContent = "Signature Complete";
-    } else {
-      signatureStatus.className = "info-box signature-needed";
-      signatureStatus.textContent = "You have not signed for this week yet.";
-
-      signatureInput.disabled = false;
-      submitSignatureBtn.disabled = false;
-      submitSignatureBtn.textContent = "Submit Weekly Signature";
-    }
-  } catch (error) {
-    signatureStatus.className = "info-box";
-    signatureStatus.textContent = "Unable to check signature status.";
-  }
-}
-
-function buildMyRequestCard(data) {
-  const statusClass = getStatusClass(data.status);
-
-  return `
-    <div class="request-card">
-      <h3>${escapeHTML(data.requestedType)}</h3>
-      <p><strong>Date:</strong> ${escapeHTML(data.requestedDate)}</p>
-      <p><strong>Time:</strong> ${formatTimeFrom24Hour(data.requestedTime)}</p>
-      <p><strong>Reason:</strong> ${escapeHTML(data.reason)}</p>
-      <span class="status-pill ${statusClass}">${escapeHTML(data.status)}</span>
-    </div>
-  `;
-}
-
-function buildAdminRequestCard(requestId, data) {
-  return `
-    <div class="request-card">
-      <h3>${escapeHTML(data.employeeName || data.employeeEmail)}</h3>
-      <p><strong>Email:</strong> ${escapeHTML(data.employeeEmail)}</p>
-      <p><strong>Requested Punch:</strong> ${escapeHTML(data.requestedType)}</p>
-      <p><strong>Date:</strong> ${escapeHTML(data.requestedDate)}</p>
-      <p><strong>Time:</strong> ${formatTimeFrom24Hour(data.requestedTime)}</p>
-      <p><strong>Reason:</strong> ${escapeHTML(data.reason)}</p>
-      <span class="status-pill status-pending">Pending</span>
-
-      <div class="request-actions">
-        <button class="approve-btn approve-request-btn" data-id="${requestId}">Approve</button>
-        <button class="danger-btn reject-request-btn" data-id="${requestId}">Reject</button>
-      </div>
-    </div>
-  `;
-}
-
-function togglePassword(inputId, buttonId) {
-  const input = document.getElementById(inputId);
-  const button = document.getElementById(buttonId);
-
-  if (input.type === "password") {
-    input.type = "text";
-    button.textContent = "Hide";
-  } else {
-    input.type = "password";
-    button.textContent = "Show";
   }
 }
 
@@ -1271,7 +1602,7 @@ async function saveEmployeeName(uid, email, name, isNewAccount) {
   const cleanEmail = email.toLowerCase().trim();
 
   const employeeData = {
-    name: name,
+    name,
     email: cleanEmail,
     updatedAt: serverTimestamp()
   };
@@ -1283,34 +1614,10 @@ async function saveEmployeeName(uid, email, name, isNewAccount) {
   await setDoc(doc(db, "employees", uid), employeeData, { merge: true });
 
   await setDoc(doc(db, "employeeNames", cleanEmail), {
-    name: name,
+    name,
     email: cleanEmail,
     updatedAt: serverTimestamp()
   }, { merge: true });
-}
-
-async function savePunch(type) {
-  const user = auth.currentUser;
-
-  if (!user) return;
-
-  const cleanEmail = user.email.toLowerCase().trim();
-
-  if (!currentUserName) {
-    currentUserName = await getEmployeeName(user.uid, cleanEmail);
-  }
-
-  await addDoc(collection(db, "punches"), {
-    employeeId: user.uid,
-    employeeName: currentUserName || cleanEmail,
-    employeeEmail: cleanEmail,
-    type: type,
-    time: serverTimestamp(),
-    source: "Employee Clock Button",
-    deleted: false
-  });
-
-  alert(`${type} saved!`);
 }
 
 async function getEmployeeName(uid, email) {
@@ -1344,6 +1651,18 @@ async function getEmployeeNamesByEmail() {
   });
 
   return employeeNamesByEmail;
+}
+
+function updateProfileUI(user) {
+  const cleanEmail = user.email.toLowerCase().trim();
+
+  welcomeText.innerHTML = currentUserName
+    ? `Welcome, <span>${escapeHTML(currentUserName)}</span>`
+    : `Welcome, <span>Add your name in profile</span>`;
+
+  settingsName.value = currentUserName || "";
+  profileNameText.textContent = currentUserName || "No name saved";
+  profileEmailText.textContent = cleanEmail;
 }
 
 function emptyWeek() {
@@ -1517,7 +1836,6 @@ function getWeekDates(startOfWeek) {
   for (let i = 0; i < 7; i++) {
     const currentDate = new Date(startOfWeek);
     currentDate.setDate(startOfWeek.getDate() + i);
-
     dates.push(formatDateShort(currentDate));
   }
 
@@ -1557,16 +1875,18 @@ function setCurrentWeek() {
   if (weekPicker) weekPicker.value = currentWeek;
   if (myWeekPicker) myWeekPicker.value = currentWeek;
   if (adminEditWeekPicker) adminEditWeekPicker.value = currentWeek;
-  if (myScheduleWeekPicker) myScheduleWeekPicker.value = currentWeek;
   if (adminScheduleWeekPicker) adminScheduleWeekPicker.value = currentWeek;
   if (adminScheduleBuilderWeekPicker) adminScheduleBuilderWeekPicker.value = currentWeek;
 }
 
 function setTodayDate() {
   const today = new Date();
+  const todayValue = formatDateInputValue(today);
 
-  if (editDate) editDate.value = formatDateInputValue(today);
-  if (scheduleDate) scheduleDate.value = formatDateInputValue(today);
+  if (editDate) editDate.value = todayValue;
+  if (scheduleDate) scheduleDate.value = todayValue;
+  if (timeOffStartDate) timeOffStartDate.value = todayValue;
+  if (timeOffEndDate) timeOffEndDate.value = todayValue;
 }
 
 function formatDateInputValue(dateObj) {
@@ -1612,10 +1932,35 @@ function formatTimeFrom24Hour(timeValue) {
   });
 }
 
+function getDatesBetween(startDate, endDate) {
+  const dates = [];
+  const start = new Date(`${startDate}T00:00`);
+  const end = new Date(`${endDate}T00:00`);
+
+  for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+    dates.push(formatDateInputValue(date));
+  }
+
+  return dates;
+}
+
 function getStatusClass(status) {
   if (status === "Approved") return "status-approved";
   if (status === "Rejected") return "status-rejected";
   return "status-pending";
+}
+
+function togglePassword(inputId, buttonId) {
+  const input = $(inputId);
+  const button = $(buttonId);
+
+  if (input.type === "password") {
+    input.type = "text";
+    button.textContent = "Hide";
+  } else {
+    input.type = "password";
+    button.textContent = "Show";
+  }
 }
 
 function escapeHTML(value) {
@@ -1627,40 +1972,18 @@ function escapeHTML(value) {
     .replaceAll("'", "&#039;");
 }
 
-function moveScheduleAndHistoryForUser(isAdmin) {
-  if (isAdmin) {
-    employeeLeftColumn.appendChild(myScheduleBox);
-    employeeLeftColumn.appendChild(myHistoryBox);
-  } else {
-    employeeRightPanel.appendChild(myScheduleBox);
-    employeeRightPanel.appendChild(myHistoryBox);
-  }
-}
-
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     authBox.classList.add("hidden");
     signupBox.classList.add("hidden");
-
-    employeeLeftColumn.classList.remove("hidden");
-    settingsIconBtn.classList.remove("hidden");
-
-    clockBox.classList.remove("hidden");
-    myScheduleBox.classList.remove("hidden");
-    myHistoryBox.classList.remove("hidden");
-    timeEditBox.classList.remove("hidden");
-    signatureBox.classList.remove("hidden");
+    appPages.classList.remove("hidden");
+    hamburgerBtn.classList.remove("hidden");
+    footerNote.classList.remove("hidden");
 
     const cleanEmail = user.email.toLowerCase().trim();
 
     currentUserName = await getEmployeeName(user.uid, cleanEmail);
-    settingsName.value = currentUserName;
-
-    if (currentUserName) {
-      welcomeText.innerHTML = `Welcome, <span>${escapeHTML(currentUserName)}</span>`;
-    } else {
-      welcomeText.innerHTML = `Welcome, <span>Add your name in settings</span>`;
-    }
+    updateProfileUI(user);
 
     const cleanAdminEmails = adminEmails.map((email) =>
       email.toLowerCase().trim()
@@ -1669,55 +1992,42 @@ onAuthStateChanged(auth, async (user) => {
     const isCurrentUserAdmin = cleanAdminEmails.includes(cleanEmail);
 
     if (isCurrentUserAdmin) {
-      appLayout.classList.remove("employee-only");
-
-      moveScheduleAndHistoryForUser(true);
-
-      employeeRightPanel.classList.add("hidden");
-      adminBox.classList.remove("hidden");
-      signatureAdminBox.classList.remove("hidden");
-      adminPunchEditorBtn.classList.remove("hidden");
-
-      await loadPendingTimeEditRequests();
-      await loadWeeklySignatures();
-      await loadAdminSchedules();
+      adminMenuLinks.classList.remove("hidden");
+      document.querySelectorAll(".admin-page").forEach((page) => {
+        page.classList.remove("admin-locked");
+      });
     } else {
-      appLayout.classList.add("employee-only");
-
-      moveScheduleAndHistoryForUser(false);
-
-      employeeRightPanel.classList.remove("hidden");
-      adminBox.classList.add("hidden");
-      signatureAdminBox.classList.add("hidden");
-      adminPunchEditorBtn.classList.add("hidden");
+      adminMenuLinks.classList.add("hidden");
+      document.querySelectorAll(".admin-page").forEach((page) => {
+        page.classList.add("admin-locked");
+      });
     }
 
+    showPage("clockPage");
+
+    await loadClockStatus();
     await checkWeeklySignature();
-    await loadMySchedule();
+    await loadMyMonthlySchedule();
     await loadMyHistory();
     await loadMyTimeEditRequests();
+    await loadMyTimeOffRequests();
+
+    if (isCurrentUserAdmin) {
+      await loadPendingTimeEditRequests();
+      await loadPendingTimeOffRequests();
+      await loadWeeklySignatures();
+      await loadAdminSchedules();
+    }
   } else {
     authBox.classList.remove("hidden");
     signupBox.classList.add("hidden");
-
-    employeeLeftColumn.classList.add("hidden");
-    employeeRightPanel.classList.add("hidden");
-
-    clockBox.classList.add("hidden");
-    myScheduleBox.classList.add("hidden");
-    myHistoryBox.classList.add("hidden");
-    timeEditBox.classList.add("hidden");
-    signatureBox.classList.add("hidden");
-    signatureAdminBox.classList.add("hidden");
-    adminBox.classList.add("hidden");
-
-    settingsIconBtn.classList.add("hidden");
-    settingsModal.classList.add("hidden");
-    adminPunchEditorBtn.classList.add("hidden");
-    adminPunchModal.classList.add("hidden");
+    appPages.classList.add("hidden");
+    hamburgerBtn.classList.add("hidden");
+    sideMenu.classList.add("hidden");
+    menuOverlay.classList.add("hidden");
+    footerNote.classList.add("hidden");
+    adminMenuLinks.classList.add("hidden");
     editPunchModal.classList.add("hidden");
-
-    appLayout.classList.add("employee-only");
 
     currentUserName = "";
   }
