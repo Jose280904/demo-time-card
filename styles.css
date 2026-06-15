@@ -465,6 +465,22 @@ button.secondary {
   color: #9f1c1c;
 }
 
+.home-dashboard {
+  display: grid;
+  grid-template-columns: 0.75fr 1.25fr;
+  gap: 22px;
+  align-items: start;
+}
+
+.home-clock-card,
+.home-schedule-card {
+  margin-bottom: 0;
+}
+
+.home-schedule-card .employee-week-grid {
+  grid-template-columns: 1fr;
+}
+
 .calendar-controls {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -820,6 +836,11 @@ button.secondary {
 }
 
 @media (max-width: 900px) {
+
+  .home-dashboard {
+  grid-template-columns: 1fr;
+}
+
   .site-header {
     padding-top: 20px;
     min-height: 82px;

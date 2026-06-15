@@ -28,8 +28,7 @@
       <button id="closeMenuBtn" class="close-menu-btn">×</button>
     </div>
 
-    <button class="menu-link active-menu-link" data-page="clockPage">Clock Status</button>
-    <button class="menu-link" data-page="schedulePage">My Schedule</button>
+    <button class="menu-link active-menu-link" data-page="clockPage">Home</button>
     <button class="menu-link" data-page="timeOffPage">Time Off</button>
     <button class="menu-link" data-page="timeEditPage">Time Edit Request</button>
     <button class="menu-link" data-page="profilePage">My Profile</button>
@@ -93,48 +92,48 @@
 
     <section id="appPages" class="app-pages hidden">
       <section id="clockPage" class="app-page active-page">
-        <section id="clockBox" class="card">
-          <h2 id="welcomeText">Welcome</h2>
-          <p class="muted">Clock in, start lunch, end lunch, or clock out.</p>
+        <div class="home-dashboard">
+          <section id="clockBox" class="card home-clock-card">
+            <h2 id="welcomeText">Welcome</h2>
+            <p class="muted">Clock in, start lunch, end lunch, or clock out.</p>
 
-          <div class="status-card">
-            <p class="status-label">Current Status</p>
-            <h3 id="clockStatusText">Ready</h3>
-            <p id="lastPunchText" class="muted">No recent punch loaded.</p>
-          </div>
-
-          <div class="clock-actions">
-            <button id="clockInBtn">🟢 Clock In</button>
-            <button id="startLunchBtn">🍔 Start Lunch</button>
-            <button id="endLunchBtn">🔙 End Lunch</button>
-            <button id="clockOutBtn">🔴 Clock Out</button>
-          </div>
-        </section>
-      </section>
-
-      <section id="schedulePage" class="app-page hidden">
-        <section id="myScheduleBox" class="card">
-          <div class="page-title-row">
-            <div>
-              <h2>My Schedule</h2>
-              <p class="muted">View your full weekly schedule, daily hours, and total scheduled hours.</p>
+            <div class="status-card">
+              <p class="status-label">Current Status</p>
+              <h3 id="clockStatusText">Ready</h3>
+              <p id="lastPunchText" class="muted">No recent punch loaded.</p>
             </div>
-          </div>
 
-          <div class="calendar-controls">
-            <button id="prevEmployeeWeekBtn" class="outline-btn">← Previous Week</button>
-            <h3 id="myScheduleWeekTitle">This Week</h3>
-            <button id="nextEmployeeWeekBtn" class="outline-btn">Next Week →</button>
-          </div>
+            <div class="clock-actions">
+              <button id="clockInBtn">🟢 Clock In</button>
+              <button id="startLunchBtn">🍔 Start Lunch</button>
+              <button id="endLunchBtn">🔙 End Lunch</button>
+              <button id="clockOutBtn">🔴 Clock Out</button>
+            </div>
+          </section>
 
-          <div id="myScheduleCalendar" class="employee-week-calendar">
-            <p class="info-box">Loading schedule...</p>
-          </div>
+          <section id="myScheduleBox" class="card home-schedule-card">
+            <div class="page-title-row">
+              <div>
+                <h2>My Schedule</h2>
+                <p class="muted">View your full weekly schedule, daily hours, and total scheduled hours.</p>
+              </div>
+            </div>
 
-          <div id="selectedScheduleDetails" class="selected-day-details">
-            <p class="info-box">Tap a scheduled day to view shift notes.</p>
-          </div>
-        </section>
+            <div class="calendar-controls">
+              <button id="prevEmployeeWeekBtn" class="outline-btn">← Previous Week</button>
+              <h3 id="myScheduleWeekTitle">This Week</h3>
+              <button id="nextEmployeeWeekBtn" class="outline-btn">Next Week →</button>
+            </div>
+
+            <div id="myScheduleCalendar" class="employee-week-calendar">
+              <p class="info-box">Loading schedule...</p>
+            </div>
+
+            <div id="selectedScheduleDetails" class="selected-day-details">
+              <p class="info-box">Tap a scheduled day to view shift notes.</p>
+            </div>
+          </section>
+        </div>
       </section>
 
       <section id="timeOffPage" class="app-page hidden">

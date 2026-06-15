@@ -215,7 +215,6 @@ document.querySelectorAll(".menu-link").forEach((button) => {
     showPage(button.dataset.page);
     closeMenu();
 
-    if (button.dataset.page === "schedulePage") await loadMyWeeklySchedule();
     if (button.dataset.page === "timeOffPage") await loadMyTimeOffRequests();
     if (button.dataset.page === "timeEditPage") await loadMyTimeEditRequests();
     if (button.dataset.page === "historyPage") await loadMyHistory();
