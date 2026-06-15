@@ -477,10 +477,6 @@ button.secondary {
   margin-bottom: 0;
 }
 
-.home-schedule-card .employee-week-grid {
-  grid-template-columns: 1fr;
-}
-
 .calendar-controls {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -495,19 +491,26 @@ button.secondary {
   white-space: nowrap;
 }
 
+.compact-controls button {
+  padding: 12px;
+  font-size: 14px;
+}
+
 .employee-week-calendar {
   margin-top: 22px;
 }
 
 .employee-week-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 12px;
-  margin-top: 20px;
+  grid-template-columns: repeat(7, minmax(110px, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+  overflow-x: auto;
+  padding-bottom: 8px;
 }
 
 .employee-schedule-day {
-  min-height: 145px;
+  min-height: 118px;
   padding: 12px;
   margin: 0;
   border-radius: 16px;
@@ -515,7 +518,13 @@ button.secondary {
   color: var(--black);
   border: 2px solid #d8dadd;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-  text-align: left;
+  text-align: center;
+}
+
+.employee-schedule-day:hover {
+  border-color: var(--black);
+  filter: none;
+  transform: translateY(-1px);
 }
 
 .employee-schedule-day strong,
@@ -525,12 +534,12 @@ button.secondary {
 }
 
 .employee-schedule-day strong {
-  font-size: 16px;
+  font-size: 15px;
   margin-bottom: 5px;
 }
 
 .employee-schedule-day span {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
 }
 
@@ -545,20 +554,22 @@ button.secondary {
 }
 
 .shift-time {
-  margin-top: 12px;
+  margin-top: 10px;
   font-weight: bold;
   color: var(--black);
+  font-size: 13px;
+  line-height: 1.25;
 }
 
 .shift-hours {
-  margin-top: 6px;
+  margin: 8px auto 0;
   display: inline-block !important;
   width: fit-content;
   padding: 5px 9px;
   border-radius: 999px;
   background: var(--blue);
   color: white;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
 }
 
@@ -566,6 +577,12 @@ button.secondary {
   margin-top: 14px;
   color: var(--muted);
   font-weight: bold;
+  font-size: 13px;
+}
+
+.compact-week-calendar .schedule-total-box {
+  margin-top: 12px;
+  text-align: center;
 }
 
 .schedule-week-grid {
@@ -836,11 +853,6 @@ button.secondary {
 }
 
 @media (max-width: 900px) {
-
-  .home-dashboard {
-  grid-template-columns: 1fr;
-}
-
   .site-header {
     padding-top: 20px;
     min-height: 82px;
@@ -874,9 +886,12 @@ button.secondary {
   .request-actions,
   .admin-punch-actions,
   .calendar-controls,
-  .employee-week-grid,
   .schedule-week-grid {
     grid-template-columns: 1fr;
+  }
+
+  .employee-week-grid {
+    grid-template-columns: repeat(7, minmax(105px, 1fr));
   }
 
   .calendar-controls h3 {
@@ -900,7 +915,10 @@ button.secondary {
     padding: 14px;
   }
 
-  .employee-schedule-day,
+  .employee-schedule-day {
+    min-height: 105px;
+  }
+
   .schedule-day-btn {
     min-height: 125px;
   }
