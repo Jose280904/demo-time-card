@@ -467,7 +467,7 @@ button.secondary {
 
 .home-dashboard {
   display: grid;
-  grid-template-columns: 0.75fr 1.25fr;
+  grid-template-columns: 1fr;
   gap: 22px;
   align-items: start;
 }
