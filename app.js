@@ -87,6 +87,8 @@ const buildScheduleWeekBtn = $("buildScheduleWeekBtn");
 const scheduleWeekGrid = $("scheduleWeekGrid");
 const selectedScheduleDayBox = $("selectedScheduleDayBox");
 const selectedScheduleDayTitle = $("selectedScheduleDayTitle");
+const scheduleBuilderWeekTotal = $("scheduleBuilderWeekTotal");
+const scheduleBuilderTotalHours = $("scheduleBuilderTotalHours");
 
 const scheduleEmployeeEmail = $("scheduleEmployeeEmail");
 const scheduleEmployeeName = $("scheduleEmployeeName");
@@ -96,6 +98,11 @@ const scheduleEndTime = $("scheduleEndTime");
 const scheduleLocation = $("scheduleLocation");
 const scheduleNotes = $("scheduleNotes");
 const postScheduleBtn = $("postScheduleBtn");
+const editingScheduleId = $("editingScheduleId");
+const saveScheduleEditBtn = $("saveScheduleEditBtn");
+const cancelScheduleEditBtn = $("cancelScheduleEditBtn");
+const removeScheduleBtn = $("removeScheduleBtn");
+const selectedDayHoursPreview = $("selectedDayHoursPreview");
 
 const adminScheduleWeekPicker = $("adminScheduleWeekPicker");
 const adminScheduleRecords = $("adminScheduleRecords");
@@ -111,14 +118,14 @@ const adminEditPunchTime = $("adminEditPunchTime");
 const adminEditPunchType = $("adminEditPunchType");
 const saveEditedPunchBtn = $("saveEditedPunchBtn");
 
-const prevMonthBtn = $("prevMonthBtn");
-const nextMonthBtn = $("nextMonthBtn");
-const myScheduleMonthTitle = $("myScheduleMonthTitle");
+const prevEmployeeWeekBtn = $("prevEmployeeWeekBtn");
+const nextEmployeeWeekBtn = $("nextEmployeeWeekBtn");
+const myScheduleWeekTitle = $("myScheduleWeekTitle");
 const myScheduleCalendar = $("myScheduleCalendar");
 const selectedScheduleDetails = $("selectedScheduleDetails");
 
 let currentUserName = "";
-let currentCalendarDate = new Date();
+let currentEmployeeWeekStart = getStartOfWeek(new Date());
 
 setCurrentWeek();
 setTodayDate();
@@ -208,7 +215,7 @@ document.querySelectorAll(".menu-link").forEach((button) => {
     showPage(button.dataset.page);
     closeMenu();
 
-    if (button.dataset.page === "schedulePage") await loadMyMonthlySchedule();
+    if (button.dataset.page === "schedulePage") await loadMyWeeklySchedule();
     if (button.dataset.page === "timeOffPage") await loadMyTimeOffRequests();
     if (button.dataset.page === "timeEditPage") await loadMyTimeEditRequests();
     if (button.dataset.page === "historyPage") await loadMyHistory();
@@ -292,8 +299,15 @@ timeOffRequests.addEventListener("click", async (event) => {
 
 buildScheduleWeekBtn.addEventListener("click", buildScheduleWeekGrid);
 postScheduleBtn.addEventListener("click", postEmployeeSchedule);
+saveScheduleEditBtn.addEventListener("click", saveScheduleEdit);
+cancelScheduleEditBtn.addEventListener("click", resetScheduleForm);
+removeScheduleBtn.addEventListener("click", removeScheduleShift);
+
 $("loadAdminSchedulesBtn").addEventListener("click", loadAdminSchedules);
 $("loadAdminPunchesBtn").addEventListener("click", loadAdminPunchEditor);
+
+scheduleStartTime.addEventListener("change", updateSelectedDayHoursPreview);
+scheduleEndTime.addEventListener("change", updateSelectedDayHoursPreview);
 
 scheduleWeekGrid.addEventListener("click", (event) => {
   const dayButton = event.target.closest(".schedule-day-btn");
@@ -307,7 +321,60 @@ scheduleWeekGrid.addEventListener("click", (event) => {
 
   scheduleDate.value = dayButton.dataset.date;
   selectedScheduleDayTitle.textContent = `${dayButton.dataset.day} · ${dayButton.dataset.display}`;
+
+  if (dayButton.dataset.scheduleId) {
+    editingScheduleId.value = dayButton.dataset.scheduleId;
+    scheduleStartTime.value = dayButton.dataset.startTime || "";
+    scheduleEndTime.value = dayButton.dataset.endTime || "";
+    scheduleLocation.value = dayButton.dataset.location || "";
+    scheduleNotes.value = dayButton.dataset.notes || "";
+
+    postScheduleBtn.classList.add("hidden");
+    saveScheduleEditBtn.classList.remove("hidden");
+    cancelScheduleEditBtn.classList.remove("hidden");
+    removeScheduleBtn.classList.remove("hidden");
+  } else {
+    resetScheduleForm(false);
+    scheduleDate.value = dayButton.dataset.date;
+    selectedScheduleDayTitle.textContent = `${dayButton.dataset.day} · ${dayButton.dataset.display}`;
+  }
+
+  updateSelectedDayHoursPreview();
   selectedScheduleDayBox.classList.remove("hidden");
+});
+
+adminScheduleRecords.addEventListener("click", async (event) => {
+  const toggleBtn = event.target.closest(".admin-employee-schedule-toggle");
+  const editBtn = event.target.closest(".admin-edit-shift-btn");
+  const removeBtn = event.target.closest(".admin-remove-shift-btn");
+
+  if (toggleBtn) {
+    const target = document.getElementById(toggleBtn.dataset.target);
+    if (target) target.classList.toggle("hidden");
+  }
+
+  if (editBtn) {
+    showPage("adminScheduleBuilderPage");
+
+    scheduleEmployeeEmail.value = editBtn.dataset.email || "";
+    scheduleEmployeeName.value = editBtn.dataset.name || "";
+    adminScheduleBuilderWeekPicker.value = adminScheduleWeekPicker.value || getCurrentWeekValue();
+
+    await buildScheduleWeekGrid();
+
+    const matchingDay = document.querySelector(
+      `.schedule-day-btn[data-schedule-id="${editBtn.dataset.id}"]`
+    );
+
+    if (matchingDay) {
+      matchingDay.click();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  if (removeBtn) {
+    await softDeleteSchedule(removeBtn.dataset.id);
+  }
 });
 
 adminPunchEditorRecords.addEventListener("click", async (event) => {
@@ -330,18 +397,18 @@ editPunchModal.addEventListener("click", (event) => {
 
 saveEditedPunchBtn.addEventListener("click", saveEditedPunch);
 
-prevMonthBtn.addEventListener("click", async () => {
-  currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
-  await loadMyMonthlySchedule();
+prevEmployeeWeekBtn.addEventListener("click", async () => {
+  currentEmployeeWeekStart.setDate(currentEmployeeWeekStart.getDate() - 7);
+  await loadMyWeeklySchedule();
 });
 
-nextMonthBtn.addEventListener("click", async () => {
-  currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
-  await loadMyMonthlySchedule();
+nextEmployeeWeekBtn.addEventListener("click", async () => {
+  currentEmployeeWeekStart.setDate(currentEmployeeWeekStart.getDate() + 7);
+  await loadMyWeeklySchedule();
 });
 
 myScheduleCalendar.addEventListener("click", async (event) => {
-  const dayBtn = event.target.closest(".calendar-day");
+  const dayBtn = event.target.closest(".employee-schedule-day");
   if (!dayBtn || !dayBtn.dataset.date) return;
   await showScheduleDetailsForDate(dayBtn.dataset.date);
 });
@@ -487,7 +554,7 @@ async function submitTimeOffRequest() {
 
     alert("Time off request submitted.");
     await loadMyTimeOffRequests();
-    await loadMyMonthlySchedule();
+    await loadMyWeeklySchedule();
   } catch (error) {
     alert(error.message);
   }
@@ -557,7 +624,7 @@ async function approveTimeOffRequest(requestId) {
     alert("Time off request approved.");
 
     await loadPendingTimeOffRequests();
-    await loadMyMonthlySchedule();
+    await loadMyWeeklySchedule();
   } catch (error) {
     alert(error.message);
   }
@@ -617,82 +684,79 @@ function buildAdminTimeOffCard(requestId, data) {
   `;
 }
 
-async function loadMyMonthlySchedule() {
+async function loadMyWeeklySchedule() {
   const user = auth.currentUser;
   if (!user) return;
 
   try {
     const cleanEmail = user.email.toLowerCase().trim();
 
-    const year = currentCalendarDate.getFullYear();
-    const month = currentCalendarDate.getMonth();
+    const startOfWeek = getStartOfWeek(currentEmployeeWeekStart);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 7);
 
-    myScheduleMonthTitle.textContent = currentCalendarDate.toLocaleDateString([], {
-      month: "long",
-      year: "numeric"
-    });
+    myScheduleWeekTitle.textContent = `${formatDateShort(startOfWeek)} - ${formatDateShort(addDays(startOfWeek, 6))}`;
 
     const schedules = await getSchedulesForEmployee(cleanEmail);
     const timeOff = await getTimeOffForEmployee(cleanEmail);
 
-    buildMonthCalendar(year, month, schedules, timeOff);
+    const weekSchedules = schedules.filter((shift) => {
+      if (!shift.date) return false;
+      const shiftDate = new Date(`${shift.date}T00:00`);
+      return shiftDate >= startOfWeek && shiftDate < endOfWeek;
+    });
+
+    buildEmployeeWeekSchedule(startOfWeek, weekSchedules, timeOff);
   } catch (error) {
-    myScheduleCalendar.innerHTML = `<p class="info-box">Unable to load schedule calendar.</p>`;
+    myScheduleCalendar.innerHTML = `<p class="info-box">Unable to load schedule.</p>`;
   }
 }
 
-function buildMonthCalendar(year, month, schedules, timeOff) {
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
+function buildEmployeeWeekSchedule(startOfWeek, schedules, timeOff) {
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  let totalMinutes = 0;
 
-  const startBlankDays = firstDay.getDay();
-  const totalDays = lastDay.getDate();
+  let html = `<div class="employee-week-grid">`;
 
-  const scheduledDates = new Set(schedules.map((item) => item.date));
-  const approvedOffDates = new Set();
+  for (let i = 0; i < 7; i++) {
+    const dayDate = addDays(startOfWeek, i);
+    const dateValue = formatDateInputValue(dayDate);
+    const dayShift = schedules.find((shift) => shift.date === dateValue);
 
-  timeOff.forEach((request) => {
-    if (request.status !== "Approved") return;
-
-    getDatesBetween(request.startDate, request.endDate).forEach((dateValue) => {
-      approvedOffDates.add(dateValue);
+    const approvedOff = timeOff.some((request) => {
+      if (request.status !== "Approved") return false;
+      return dateValue >= request.startDate && dateValue <= request.endDate;
     });
-  });
 
-  let html = `
-    <div class="calendar-weekdays">
-      <span>Sun</span>
-      <span>Mon</span>
-      <span>Tue</span>
-      <span>Wed</span>
-      <span>Thu</span>
-      <span>Fri</span>
-      <span>Sat</span>
-    </div>
-    <div class="calendar-grid">
-  `;
-
-  for (let i = 0; i < startBlankDays; i++) {
-    html += `<button class="calendar-day empty-calendar-day" disabled></button>`;
-  }
-
-  for (let day = 1; day <= totalDays; day++) {
-    const dateValue = formatDateInputValue(new Date(year, month, day));
-    const hasSchedule = scheduledDates.has(dateValue);
-    const hasApprovedOff = approvedOffDates.has(dateValue);
+    const minutes = dayShift ? calculateShiftMinutes(dayShift.startTime, dayShift.endTime) : 0;
+    totalMinutes += minutes;
 
     html += `
-      <button class="calendar-day" data-date="${dateValue}">
-        <span class="calendar-date-number">${day}</span>
-        <span class="calendar-dots">
-          ${hasSchedule ? `<span class="schedule-dot"></span>` : ""}
-          ${hasApprovedOff ? `<span class="timeoff-dot"></span>` : ""}
-        </span>
+      <button class="employee-schedule-day ${dayShift ? "has-shift" : ""} ${approvedOff ? "has-timeoff" : ""}" data-date="${dateValue}">
+        <strong>${dayNames[i]}</strong>
+        <span>${formatDateShort(dayDate)}</span>
+
+        ${
+          dayShift
+            ? `
+              <div class="shift-time">${formatTimeFrom24Hour(dayShift.startTime)} - ${formatTimeFrom24Hour(dayShift.endTime)}</div>
+              <div class="shift-hours">${formatMinutes(minutes)}</div>
+            `
+            : approvedOff
+              ? `<div class="shift-off">Approved Time Off</div>`
+              : `<div class="shift-off">OFF</div>`
+        }
       </button>
     `;
   }
 
   html += `</div>`;
+
+  html += `
+    <div class="schedule-total-box">
+      <strong>Weekly Scheduled Total:</strong> ${formatMinutes(totalMinutes)}
+    </div>
+  `;
 
   myScheduleCalendar.innerHTML = html;
 }
@@ -706,6 +770,7 @@ async function showScheduleDetailsForDate(dateValue) {
   const timeOff = await getTimeOffForEmployee(cleanEmail);
 
   const daySchedules = schedules.filter((item) => item.date === dateValue);
+
   const approvedOff = timeOff.filter((item) => {
     if (item.status !== "Approved") return false;
     return dateValue >= item.startDate && dateValue <= item.endDate;
@@ -718,9 +783,12 @@ async function showScheduleDetailsForDate(dateValue) {
   }
 
   daySchedules.forEach((shift) => {
+    const minutes = calculateShiftMinutes(shift.startTime, shift.endTime);
+
     html += `
       <div class="schedule-card">
         <p><strong>Shift:</strong> ${formatTimeFrom24Hour(shift.startTime)} - ${formatTimeFrom24Hour(shift.endTime)}</p>
+        <p><strong>Scheduled Hours:</strong> ${formatMinutes(minutes)}</p>
         <p><strong>Location:</strong> ${escapeHTML(shift.location || "Not listed")}</p>
         <p><strong>Notes:</strong> ${escapeHTML(shift.notes || "No notes")}</p>
       </div>
@@ -753,7 +821,10 @@ async function getSchedulesForEmployee(email) {
     if (!data.employeeEmail) return;
     if (data.employeeEmail.toLowerCase().trim() !== email) return;
 
-    schedules.push(data);
+    schedules.push({
+      id: docSnap.id,
+      ...data
+    });
   });
 
   return schedules;
@@ -808,15 +879,26 @@ async function buildScheduleWeekGrid() {
     alert("Week loaded, but time off blocking could not be checked. Check Firebase rules for timeOffRequests.");
   }
 
+  const employeeSchedules = await getSchedulesForEmployee(employeeEmail);
+
+  const weekSchedules = employeeSchedules.filter((shift) => {
+    if (!shift.date) return false;
+
+    const shiftDate = new Date(`${shift.date}T00:00`);
+    const endOfWeek = addDays(startOfWeek, 7);
+
+    return shiftDate >= startOfWeek && shiftDate < endOfWeek;
+  });
+
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   let html = "";
+  let weeklyMinutes = 0;
 
   for (let i = 0; i < 7; i++) {
-    const dayDate = new Date(startOfWeek);
-    dayDate.setDate(startOfWeek.getDate() + i);
-
+    const dayDate = addDays(startOfWeek, i);
     const dateValue = formatDateInputValue(dayDate);
+
     const displayDate = dayDate.toLocaleDateString([], {
       month: "short",
       day: "numeric",
@@ -824,24 +906,49 @@ async function buildScheduleWeekGrid() {
     });
 
     const isOff = approvedOffDates.has(dateValue);
+    const existingShift = weekSchedules.find((shift) => shift.date === dateValue);
+
+    const dailyMinutes = existingShift
+      ? calculateShiftMinutes(existingShift.startTime, existingShift.endTime)
+      : 0;
+
+    weeklyMinutes += dailyMinutes;
 
     html += `
       <button
         type="button"
-        class="schedule-day-btn ${isOff ? "blocked-day" : ""}"
+        class="schedule-day-btn ${isOff ? "blocked-day" : ""} ${existingShift ? "scheduled-day" : ""}"
         data-date="${dateValue}"
         data-day="${dayNames[i]}"
         data-display="${displayDate}"
+        data-schedule-id="${existingShift ? escapeHTML(existingShift.id) : ""}"
+        data-start-time="${existingShift ? escapeHTML(existingShift.startTime) : ""}"
+        data-end-time="${existingShift ? escapeHTML(existingShift.endTime) : ""}"
+        data-location="${existingShift ? escapeHTML(existingShift.location || "") : ""}"
+        data-notes="${existingShift ? escapeHTML(existingShift.notes || "") : ""}"
         ${isOff ? "disabled" : ""}
       >
         <strong>${dayNames[i]}</strong>
         <span>${displayDate}</span>
+
+        ${
+          existingShift
+            ? `
+              <span class="scheduled-label">Scheduled</span>
+              <span>${formatTimeFrom24Hour(existingShift.startTime)} - ${formatTimeFrom24Hour(existingShift.endTime)}</span>
+              <span class="day-hours">${formatMinutes(dailyMinutes)}</span>
+            `
+            : ""
+        }
+
         ${isOff ? `<span class="blocked-note">Approved Time Off</span>` : ""}
       </button>
     `;
   }
 
   scheduleWeekGrid.innerHTML = html;
+  scheduleBuilderWeekTotal.classList.remove("hidden");
+  scheduleBuilderTotalHours.textContent = formatMinutes(weeklyMinutes);
   selectedScheduleDayBox.classList.add("hidden");
 }
 
@@ -862,6 +969,11 @@ async function postEmployeeSchedule() {
     return;
   }
 
+  if (calculateShiftMinutes(startTimeValue, endTimeValue) <= 0) {
+    alert("End time must be after start time.");
+    return;
+  }
+
   try {
     const approvedOffDates = await getApprovedTimeOffDates(employeeEmail);
 
@@ -869,9 +981,16 @@ async function postEmployeeSchedule() {
       alert("This employee has approved time off on this day. You cannot schedule them.");
       return;
     }
+
+    const existingShift = await getExistingScheduleForEmployeeDate(employeeEmail, dateValue);
+
+    if (existingShift) {
+      alert("This employee is already scheduled on this day. Click the scheduled day to edit it instead.");
+      return;
+    }
   } catch (error) {
-    console.error("Could not check time off before posting:", error);
-    alert("Could not check approved time off. Check Firebase rules for timeOffRequests before posting schedules.");
+    console.error("Could not check schedule before posting:", error);
+    alert("Could not check existing schedule/time off before posting.");
     return;
   }
 
@@ -900,18 +1019,128 @@ async function postEmployeeSchedule() {
       deleted: false
     });
 
-    scheduleStartTime.value = "";
-    scheduleEndTime.value = "";
-    scheduleLocation.value = "";
-    scheduleNotes.value = "";
-
     alert("Schedule posted for this day.");
 
+    resetScheduleForm();
     adminScheduleWeekPicker.value = weekValue;
+
+    await buildScheduleWeekGrid();
     await loadAdminSchedules();
   } catch (error) {
     alert(error.message);
   }
+}
+
+async function saveScheduleEdit() {
+  const adminUser = auth.currentUser;
+  if (!adminUser) return;
+
+  const scheduleId = editingScheduleId.value;
+  const dateValue = scheduleDate.value;
+  const startTimeValue = scheduleStartTime.value;
+  const endTimeValue = scheduleEndTime.value;
+  const locationValue = scheduleLocation.value.trim();
+  const notesValue = scheduleNotes.value.trim();
+
+  if (!scheduleId || !dateValue || !startTimeValue || !endTimeValue) {
+    alert("Missing shift information.");
+    return;
+  }
+
+  if (calculateShiftMinutes(startTimeValue, endTimeValue) <= 0) {
+    alert("End time must be after start time.");
+    return;
+  }
+
+  const scheduleDateObj = new Date(`${dateValue}T${startTimeValue}`);
+
+  try {
+    await updateDoc(doc(db, "schedules", scheduleId), {
+      startTime: startTimeValue,
+      endTime: endTimeValue,
+      location: locationValue,
+      notes: notesValue,
+      scheduleDateTime: scheduleDateObj,
+      editedBy: adminUser.email.toLowerCase().trim(),
+      editedAt: serverTimestamp()
+    });
+
+    alert("Shift updated.");
+
+    resetScheduleForm();
+    await buildScheduleWeekGrid();
+    await loadAdminSchedules();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function removeScheduleShift() {
+  const scheduleId = editingScheduleId.value;
+
+  if (!scheduleId) {
+    alert("No shift selected.");
+    return;
+  }
+
+  const confirmRemove = confirm("Remove this shift from the schedule?");
+  if (!confirmRemove) return;
+
+  await softDeleteSchedule(scheduleId);
+
+  resetScheduleForm();
+  await buildScheduleWeekGrid();
+}
+
+async function softDeleteSchedule(scheduleId) {
+  const adminUser = auth.currentUser;
+  if (!adminUser) return;
+
+  try {
+    await updateDoc(doc(db, "schedules", scheduleId), {
+      deleted: true,
+      deletedBy: adminUser.email.toLowerCase().trim(),
+      deletedAt: serverTimestamp()
+    });
+
+    alert("Shift removed.");
+
+    await loadAdminSchedules();
+    await loadMyWeeklySchedule();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+function resetScheduleForm(clearSelectedDay = true) {
+  editingScheduleId.value = "";
+
+  if (clearSelectedDay) {
+    scheduleDate.value = "";
+    selectedScheduleDayBox.classList.add("hidden");
+  }
+
+  scheduleStartTime.value = "";
+  scheduleEndTime.value = "";
+  scheduleLocation.value = "";
+  scheduleNotes.value = "";
+
+  postScheduleBtn.classList.remove("hidden");
+  saveScheduleEditBtn.classList.add("hidden");
+  cancelScheduleEditBtn.classList.add("hidden");
+  removeScheduleBtn.classList.add("hidden");
+
+  updateSelectedDayHoursPreview();
+}
+
+function updateSelectedDayHoursPreview() {
+  const minutes = calculateShiftMinutes(scheduleStartTime.value, scheduleEndTime.value);
+  selectedDayHoursPreview.textContent = `Scheduled Hours: ${formatMinutes(minutes)}`;
+}
+
+async function getExistingScheduleForEmployeeDate(employeeEmail, dateValue) {
+  const schedules = await getSchedulesForEmployee(employeeEmail);
+  return schedules.find((shift) => shift.date === dateValue);
 }
 
 async function getApprovedTimeOffDates(employeeEmail) {
@@ -948,35 +1177,111 @@ async function loadAdminSchedules() {
     const q = query(collection(db, "schedules"), orderBy("scheduleDateTime", "asc"));
     const snapshot = await getDocs(q);
 
-    let html = "";
+    const grouped = {};
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
 
       if (data.deleted === true) return;
       if (data.week !== selectedWeek) return;
+      if (!data.employeeEmail) return;
 
-      html += buildScheduleCard(data, true);
+      const cleanEmail = data.employeeEmail.toLowerCase().trim();
+
+      if (!grouped[cleanEmail]) {
+        grouped[cleanEmail] = {
+          employeeEmail: cleanEmail,
+          employeeName: data.employeeName || cleanEmail,
+          shifts: []
+        };
+      }
+
+      grouped[cleanEmail].shifts.push({
+        id: docSnap.id,
+        ...data
+      });
     });
 
-    adminScheduleRecords.innerHTML =
-      html || `<p class="info-box">No schedules found for this week.</p>`;
+    const employees = Object.values(grouped);
+
+    if (employees.length === 0) {
+      adminScheduleRecords.innerHTML = `<p class="info-box">No schedules found for this week.</p>`;
+      return;
+    }
+
+    let html = "";
+
+    employees.forEach((employee, index) => {
+      html += buildAdminEmployeeScheduleGroup(employee, index);
+    });
+
+    adminScheduleRecords.innerHTML = html;
   } catch (error) {
     alert(error.message);
   }
 }
 
-function buildScheduleCard(data, showEmployee) {
-  return `
-    <div class="schedule-card">
-      <h3>${escapeHTML(formatDateDisplay(data.date))}</h3>
-      ${showEmployee ? `<p><strong>Employee:</strong> ${escapeHTML(data.employeeName || data.employeeEmail)}</p>` : ""}
-      ${showEmployee ? `<p><strong>Email:</strong> ${escapeHTML(data.employeeEmail)}</p>` : ""}
-      <p><strong>Time:</strong> ${formatTimeFrom24Hour(data.startTime)} - ${formatTimeFrom24Hour(data.endTime)}</p>
-      <p><strong>Job Site:</strong> ${escapeHTML(data.location || "Not listed")}</p>
-      <p><strong>Shift Notes:</strong> ${escapeHTML(data.notes || "No notes")}</p>
+function buildAdminEmployeeScheduleGroup(employee, index) {
+  const targetId = `employeeScheduleGroup_${index}`;
+  const sortedShifts = [...employee.shifts].sort((a, b) => a.date.localeCompare(b.date));
+
+  let totalMinutes = 0;
+
+  sortedShifts.forEach((shift) => {
+    totalMinutes += calculateShiftMinutes(shift.startTime, shift.endTime);
+  });
+
+  let html = `
+    <div class="employee-schedule-group">
+      <button class="admin-employee-schedule-toggle" data-target="${targetId}">
+        <span>${escapeHTML(employee.employeeName)}</span>
+        <small>${escapeHTML(employee.employeeEmail)} · ${formatMinutes(totalMinutes)}</small>
+      </button>
+
+      <div id="${targetId}" class="admin-employee-schedule-body hidden">
+        <div class="schedule-total-box">
+          <strong>Weekly Scheduled Total:</strong> ${formatMinutes(totalMinutes)}
+        </div>
+  `;
+
+  sortedShifts.forEach((shift) => {
+    const minutes = calculateShiftMinutes(shift.startTime, shift.endTime);
+
+    html += `
+      <div class="schedule-card">
+        <h3>${escapeHTML(formatDateDisplay(shift.date))}</h3>
+        <p><strong>Time:</strong> ${formatTimeFrom24Hour(shift.startTime)} - ${formatTimeFrom24Hour(shift.endTime)}</p>
+        <p><strong>Scheduled Hours:</strong> ${formatMinutes(minutes)}</p>
+        <p><strong>Location:</strong> ${escapeHTML(shift.location || "Not listed")}</p>
+        <p><strong>Notes:</strong> ${escapeHTML(shift.notes || "No notes")}</p>
+
+        <div class="request-actions">
+          <button
+            class="edit-small-btn admin-edit-shift-btn"
+            data-id="${escapeHTML(shift.id)}"
+            data-email="${escapeHTML(employee.employeeEmail)}"
+            data-name="${escapeHTML(employee.employeeName)}"
+          >
+            Edit Shift
+          </button>
+
+          <button
+            class="danger-btn admin-remove-shift-btn"
+            data-id="${escapeHTML(shift.id)}"
+          >
+            Remove Shift
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `
+      </div>
     </div>
   `;
+
+  return html;
 }
 
 async function submitTimeEditRequest() {
@@ -1820,6 +2125,20 @@ function calculateWeeklyMinutes(days) {
   return total;
 }
 
+function calculateShiftMinutes(startTime, endTime) {
+  if (!startTime || !endTime) return 0;
+
+  const [startHour, startMinute] = startTime.split(":").map(Number);
+  const [endHour, endMinute] = endTime.split(":").map(Number);
+
+  const startTotal = startHour * 60 + startMinute;
+  const endTotal = endHour * 60 + endMinute;
+
+  if (endTotal <= startTotal) return 0;
+
+  return endTotal - startTotal;
+}
+
 function formatMinutes(minutes) {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
@@ -1860,6 +2179,23 @@ function getWeekDates(startOfWeek) {
   }
 
   return dates;
+}
+
+function getStartOfWeek(dateObj) {
+  const start = new Date(dateObj);
+  start.setHours(0, 0, 0, 0);
+
+  while (start.getDay() !== 0) {
+    start.setDate(start.getDate() - 1);
+  }
+
+  return start;
+}
+
+function addDays(dateObj, days) {
+  const copy = new Date(dateObj);
+  copy.setDate(copy.getDate() + days);
+  return copy;
 }
 
 function getCurrentWeekValue() {
@@ -2027,7 +2363,7 @@ onAuthStateChanged(auth, async (user) => {
 
     await loadClockStatus();
     await checkWeeklySignature();
-    await loadMyMonthlySchedule();
+    await loadMyWeeklySchedule();
     await loadMyHistory();
     await loadMyTimeEditRequests();
     await loadMyTimeOffRequests();

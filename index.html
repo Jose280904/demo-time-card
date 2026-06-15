@@ -117,22 +117,22 @@
           <div class="page-title-row">
             <div>
               <h2>My Schedule</h2>
-              <p class="muted">Blue dots show scheduled days. Approved time off will also appear here.</p>
+              <p class="muted">View your full weekly schedule, daily hours, and total scheduled hours.</p>
             </div>
           </div>
 
           <div class="calendar-controls">
-            <button id="prevMonthBtn" class="outline-btn">← Previous</button>
-            <h3 id="myScheduleMonthTitle">Month</h3>
-            <button id="nextMonthBtn" class="outline-btn">Next →</button>
+            <button id="prevEmployeeWeekBtn" class="outline-btn">← Previous Week</button>
+            <h3 id="myScheduleWeekTitle">This Week</h3>
+            <button id="nextEmployeeWeekBtn" class="outline-btn">Next Week →</button>
           </div>
 
-          <div id="myScheduleCalendar" class="month-calendar">
-            <p class="info-box">Loading calendar...</p>
+          <div id="myScheduleCalendar" class="employee-week-calendar">
+            <p class="info-box">Loading schedule...</p>
           </div>
 
           <div id="selectedScheduleDetails" class="selected-day-details">
-            <p class="info-box">Tap a day to view schedule details.</p>
+            <p class="info-box">Tap a scheduled day to view shift notes.</p>
           </div>
         </section>
       </section>
@@ -245,7 +245,7 @@
       <section id="adminScheduleBuilderPage" class="app-page hidden admin-page">
         <section class="card">
           <h2>Schedule Builder</h2>
-          <p class="muted">Enter the employee once, then click each day they work and add the times/notes.</p>
+          <p class="muted">Select an employee and week. Existing shifts will show on each day to prevent double scheduling.</p>
 
           <label for="scheduleEmployeeEmail">Employee Email:</label>
           <input id="scheduleEmployeeEmail" type="email" placeholder="employee@email.com" />
@@ -259,19 +259,26 @@
           <button id="buildScheduleWeekBtn">Show Week</button>
 
           <div id="scheduleWeekGrid" class="schedule-week-grid">
-            <p class="info-box">Choose a week to build a schedule.</p>
+            <p class="info-box">Choose an employee and week to build a schedule.</p>
+          </div>
+
+          <div id="scheduleBuilderWeekTotal" class="schedule-total-box hidden">
+            <strong>Weekly Total:</strong> <span id="scheduleBuilderTotalHours">0h 0m</span>
           </div>
 
           <div id="selectedScheduleDayBox" class="schedule-form-box hidden">
             <h3 id="selectedScheduleDayTitle">Selected Day</h3>
 
             <input id="scheduleDate" type="hidden" />
+            <input id="editingScheduleId" type="hidden" />
 
             <label for="scheduleStartTime">Start Time:</label>
             <input id="scheduleStartTime" type="time" />
 
             <label for="scheduleEndTime">End Time:</label>
             <input id="scheduleEndTime" type="time" />
+
+            <div id="selectedDayHoursPreview" class="hours-preview">Scheduled Hours: 0h 0m</div>
 
             <label for="scheduleLocation">Job Site / Location:</label>
             <input id="scheduleLocation" type="text" placeholder="Example: Main Office, Site A, Client Location" />
@@ -280,6 +287,9 @@
             <textarea id="scheduleNotes" placeholder="Example: What they will be working on, tools needed, job details, etc."></textarea>
 
             <button id="postScheduleBtn">Post Schedule for This Day</button>
+            <button id="saveScheduleEditBtn" class="hidden">Save Shift Changes</button>
+            <button id="cancelScheduleEditBtn" class="outline-btn hidden">Cancel Edit</button>
+            <button id="removeScheduleBtn" class="danger-btn hidden">Remove Shift From Schedule</button>
           </div>
         </section>
       </section>
@@ -287,7 +297,7 @@
       <section id="adminPostedSchedulesPage" class="app-page hidden admin-page">
         <section class="card">
           <h2>Posted Schedules</h2>
-          <p class="muted">View schedules posted for the selected week.</p>
+          <p class="muted">Select a week, then click an employee to view or edit their schedule.</p>
 
           <label for="adminScheduleWeekPicker">Choose Week:</label>
           <input id="adminScheduleWeekPicker" type="week" />
