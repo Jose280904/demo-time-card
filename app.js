@@ -760,20 +760,25 @@ async function getSchedulesForEmployee(email) {
 }
 
 async function getTimeOffForEmployee(email) {
-  const q = query(collection(db, "timeOffRequests"), orderBy("requestedAt", "desc"));
-  const snapshot = await getDocs(q);
-  const requests = [];
+  try {
+    const q = query(collection(db, "timeOffRequests"), orderBy("requestedAt", "desc"));
+    const snapshot = await getDocs(q);
+    const requests = [];
 
-  snapshot.forEach((docSnap) => {
-    const data = docSnap.data();
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
 
-    if (!data.employeeEmail) return;
-    if (data.employeeEmail.toLowerCase().trim() !== email) return;
+      if (!data.employeeEmail) return;
+      if (data.employeeEmail.toLowerCase().trim() !== email) return;
 
-    requests.push(data);
-  });
+      requests.push(data);
+    });
 
-  return requests;
+    return requests;
+  } catch (error) {
+    console.error("Unable to load time off for employee:", error);
+    return [];
+  }
 }
 
 async function buildScheduleWeekGrid() {
@@ -793,7 +798,16 @@ async function buildScheduleWeekGrid() {
   }
 
   const { startOfWeek } = getWeekDateRange(selectedWeek);
-  const approvedOffDates = await getApprovedTimeOffDates(employeeEmail);
+
+  let approvedOffDates = new Set();
+
+  try {
+    approvedOffDates = await getApprovedTimeOffDates(employeeEmail);
+  } catch (error) {
+    console.error("Could not load approved time off:", error);
+    alert("Week loaded, but time off blocking could not be checked. Check Firebase rules for timeOffRequests.");
+  }
+
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   let html = "";
@@ -848,10 +862,16 @@ async function postEmployeeSchedule() {
     return;
   }
 
-  const approvedOffDates = await getApprovedTimeOffDates(employeeEmail);
+  try {
+    const approvedOffDates = await getApprovedTimeOffDates(employeeEmail);
 
-  if (approvedOffDates.has(dateValue)) {
-    alert("This employee has approved time off on this day. You cannot schedule them.");
+    if (approvedOffDates.has(dateValue)) {
+      alert("This employee has approved time off on this day. You cannot schedule them.");
+      return;
+    }
+  } catch (error) {
+    console.error("Could not check time off before posting:", error);
+    alert("Could not check approved time off. Check Firebase rules for timeOffRequests before posting schedules.");
     return;
   }
 
