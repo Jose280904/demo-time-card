@@ -23,6 +23,30 @@ import {
   updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+/* =========================================================
+   DEMO TIME CARD APP
+   ---------------------------------------------------------
+   Main sections in this file:
+   1. Firebase setup
+   2. Page element shortcuts
+   3. Startup + button listeners
+   4. Employee dropdown for schedule builder
+   5. Clock punches
+   6. Time off requests
+   7. Employee schedule view
+   8. Admin schedule builder/view
+   9. Time edit requests
+   10. Weekly signatures
+   11. Weekly punch records + admin punch editor
+   12. Employee name/profile helpers
+   13. Date/time/math helper functions
+   14. Login/logout state
+   ========================================================= */
+
+/* =========================
+   1. Firebase setup
+   ========================= */
+
 const firebaseConfig = {
   apiKey: "AIzaSyAVsbugDlLYIiN7D70OrzZ94wdzOV2CVgk",
   authDomain: "fir-time-card.firebaseapp.com",
@@ -38,6 +62,10 @@ const adminEmails = ["centralwebservices@outlook.com"];
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+/* =========================
+   2. Page element shortcuts
+   ========================= */
 
 const $ = (id) => document.getElementById(id);
 
@@ -92,6 +120,8 @@ const scheduleBuilderTotalHours = $("scheduleBuilderTotalHours");
 
 const scheduleEmployeeEmail = $("scheduleEmployeeEmail");
 const scheduleEmployeeName = $("scheduleEmployeeName");
+let scheduleEmployeeSelect = $("scheduleEmployeeSelect");
+
 const scheduleDate = $("scheduleDate");
 const scheduleStartTime = $("scheduleStartTime");
 const scheduleEndTime = $("scheduleEndTime");
@@ -126,31 +156,33 @@ const selectedScheduleDetails = $("selectedScheduleDetails");
 
 let currentUserName = "";
 let currentEmployeeWeekStart = getStartOfWeek(new Date());
+let cachedEmployees = [];
+
+/* =========================
+   3. Startup + button listeners
+   ========================= */
 
 setCurrentWeek();
 setTodayDate();
+setupEmployeeDropdown();
 
-$("showPasswordBtn").addEventListener("click", () => togglePassword("password", "showPasswordBtn"));
-$("showSignupPasswordBtn").addEventListener("click", () => togglePassword("signupPassword", "showSignupPasswordBtn"));
-$("showConfirmPasswordBtn").addEventListener("click", () => togglePassword("confirmPassword", "showConfirmPasswordBtn"));
+$("showPasswordBtn")?.addEventListener("click", () => togglePassword("password", "showPasswordBtn"));
+$("showSignupPasswordBtn")?.addEventListener("click", () => togglePassword("signupPassword", "showSignupPasswordBtn"));
+$("showConfirmPasswordBtn")?.addEventListener("click", () => togglePassword("confirmPassword", "showConfirmPasswordBtn"));
 
-$("openSignupBtn").addEventListener("click", () => {
+$("openSignupBtn")?.addEventListener("click", () => {
   authBox.classList.add("hidden");
   signupBox.classList.remove("hidden");
 });
 
-$("backToLoginBtn").addEventListener("click", () => {
+$("backToLoginBtn")?.addEventListener("click", () => {
   signupBox.classList.add("hidden");
   authBox.classList.remove("hidden");
 });
 
-$("forgotPasswordLink").addEventListener("click", async () => {
+$("forgotPasswordLink")?.addEventListener("click", async () => {
   const email = $("email").value.trim().toLowerCase();
-
-  if (!email) {
-    alert("Enter your email first, then click forgot password.");
-    return;
-  }
+  if (!email) return alert("Enter your email first, then click forgot password.");
 
   try {
     await sendPasswordResetEmail(auth, email);
@@ -160,21 +192,14 @@ $("forgotPasswordLink").addEventListener("click", async () => {
   }
 });
 
-$("signupBtn").addEventListener("click", async () => {
+$("signupBtn")?.addEventListener("click", async () => {
   const name = $("signupName").value.trim();
   const email = $("signupEmail").value.trim().toLowerCase();
   const password = $("signupPassword").value;
   const confirmPassword = $("confirmPassword").value;
 
-  if (!name || !email || !password || !confirmPassword) {
-    alert("Enter name, email, password, and confirm password.");
-    return;
-  }
-
-  if (password !== confirmPassword) {
-    alert("Passwords do not match.");
-    return;
-  }
+  if (!name || !email || !password || !confirmPassword) return alert("Enter name, email, password, and confirm password.");
+  if (password !== confirmPassword) return alert("Passwords do not match.");
 
   try {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -186,14 +211,11 @@ $("signupBtn").addEventListener("click", async () => {
   }
 });
 
-$("loginBtn").addEventListener("click", async () => {
+$("loginBtn")?.addEventListener("click", async () => {
   const email = $("email").value.trim().toLowerCase();
   const password = $("password").value;
 
-  if (!email || !password) {
-    alert("Enter your email and password.");
-    return;
-  }
+  if (!email || !password) return alert("Enter your email and password.");
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
@@ -202,13 +224,11 @@ $("loginBtn").addEventListener("click", async () => {
   }
 });
 
-$("logoutBtn").addEventListener("click", async () => {
-  await signOut(auth);
-});
+$("logoutBtn")?.addEventListener("click", async () => signOut(auth));
 
-hamburgerBtn.addEventListener("click", openMenu);
-closeMenuBtn.addEventListener("click", closeMenu);
-menuOverlay.addEventListener("click", closeMenu);
+hamburgerBtn?.addEventListener("click", openMenu);
+closeMenuBtn?.addEventListener("click", closeMenu);
+menuOverlay?.addEventListener("click", closeMenu);
 
 document.querySelectorAll(".menu-link").forEach((button) => {
   button.addEventListener("click", async () => {
@@ -219,6 +239,7 @@ document.querySelectorAll(".menu-link").forEach((button) => {
     if (button.dataset.page === "timeEditPage") await loadMyTimeEditRequests();
     if (button.dataset.page === "historyPage") await loadMyHistory();
     if (button.dataset.page === "signaturePage") await checkWeeklySignature();
+    if (button.dataset.page === "adminScheduleBuilderPage") await refreshEmployeeDropdown();
     if (button.dataset.page === "adminPostedSchedulesPage") await loadAdminSchedules();
     if (button.dataset.page === "adminTimeOffPage") await loadPendingTimeOffRequests();
     if (button.dataset.page === "adminTimeEditPage") await loadPendingTimeEditRequests();
@@ -228,38 +249,31 @@ document.querySelectorAll(".menu-link").forEach((button) => {
   });
 });
 
-$("clockInBtn").addEventListener("click", async () => savePunch("Clock In"));
-$("startLunchBtn").addEventListener("click", async () => savePunch("Start Lunch"));
-$("endLunchBtn").addEventListener("click", async () => savePunch("End Lunch"));
-$("clockOutBtn").addEventListener("click", async () => savePunch("Clock Out"));
+$("clockInBtn")?.addEventListener("click", async () => savePunch("Clock In"));
+$("startLunchBtn")?.addEventListener("click", async () => savePunch("Start Lunch"));
+$("endLunchBtn")?.addEventListener("click", async () => savePunch("End Lunch"));
+$("clockOutBtn")?.addEventListener("click", async () => savePunch("Clock Out"));
 
-$("saveNameBtn").addEventListener("click", async () => {
+$("saveNameBtn")?.addEventListener("click", async () => {
   const user = auth.currentUser;
   const newName = settingsName.value.trim();
-
   if (!user) return;
-
-  if (!newName) {
-    alert("Enter a name first.");
-    return;
-  }
+  if (!newName) return alert("Enter a name first.");
 
   try {
     const cleanEmail = user.email.toLowerCase().trim();
     await saveEmployeeName(user.uid, cleanEmail, newName, false);
-
     currentUserName = newName;
     updateProfileUI(user);
-
+    await refreshEmployeeDropdown();
     alert("Name updated!");
   } catch (error) {
     alert(error.message);
   }
 });
 
-$("resetPasswordBtn").addEventListener("click", async () => {
+$("resetPasswordBtn")?.addEventListener("click", async () => {
   const user = auth.currentUser;
-
   if (!user) return;
 
   try {
@@ -270,185 +284,195 @@ $("resetPasswordBtn").addEventListener("click", async () => {
   }
 });
 
-$("submitTimeEditBtn").addEventListener("click", submitTimeEditRequest);
-$("loadTimeEditRequestsBtn").addEventListener("click", loadPendingTimeEditRequests);
-$("loadRecordsBtn").addEventListener("click", loadWeeklyRecords);
-$("loadMyHistoryBtn").addEventListener("click", loadMyHistory);
-$("loadWeeklySignaturesBtn").addEventListener("click", loadWeeklySignatures);
-$("submitTimeOffBtn").addEventListener("click", submitTimeOffRequest);
-$("loadTimeOffRequestsBtn").addEventListener("click", loadPendingTimeOffRequests);
+$("submitTimeEditBtn")?.addEventListener("click", submitTimeEditRequest);
+$("loadTimeEditRequestsBtn")?.addEventListener("click", loadPendingTimeEditRequests);
+$("loadRecordsBtn")?.addEventListener("click", loadWeeklyRecords);
+$("loadMyHistoryBtn")?.addEventListener("click", loadMyHistory);
+$("loadWeeklySignaturesBtn")?.addEventListener("click", loadWeeklySignatures);
+$("submitTimeOffBtn")?.addEventListener("click", submitTimeOffRequest);
+$("loadTimeOffRequestsBtn")?.addEventListener("click", loadPendingTimeOffRequests);
 
-submitSignatureBtn.addEventListener("click", submitWeeklySignature);
+submitSignatureBtn?.addEventListener("click", submitWeeklySignature);
+timeEditRequests?.addEventListener("click", handleTimeEditRequestClick);
+timeOffRequests?.addEventListener("click", handleTimeOffRequestClick);
 
-timeEditRequests.addEventListener("click", async (event) => {
-  const approveBtn = event.target.closest(".approve-request-btn");
-  const rejectBtn = event.target.closest(".reject-request-btn");
+buildScheduleWeekBtn?.addEventListener("click", buildScheduleWeekGrid);
+postScheduleBtn?.addEventListener("click", postEmployeeSchedule);
+saveScheduleEditBtn?.addEventListener("click", saveScheduleEdit);
+cancelScheduleEditBtn?.addEventListener("click", resetScheduleForm);
+removeScheduleBtn?.addEventListener("click", removeScheduleShift);
 
-  if (approveBtn) await approveTimeEditRequest(approveBtn.dataset.id);
-  if (rejectBtn) await rejectTimeEditRequest(rejectBtn.dataset.id);
+$("loadAdminSchedulesBtn")?.addEventListener("click", loadAdminSchedules);
+$("loadAdminPunchesBtn")?.addEventListener("click", loadAdminPunchEditor);
+
+scheduleStartTime?.addEventListener("change", updateSelectedDayHoursPreview);
+scheduleEndTime?.addEventListener("change", updateSelectedDayHoursPreview);
+scheduleWeekGrid?.addEventListener("click", handleScheduleDayClick);
+adminScheduleRecords?.addEventListener("click", handleAdminScheduleRecordsClick);
+adminPunchEditorRecords?.addEventListener("click", handleAdminPunchEditorClick);
+
+closeEditPunchBtn?.addEventListener("click", () => editPunchModal.classList.add("hidden"));
+editPunchModal?.addEventListener("click", (event) => {
+  if (event.target === editPunchModal) editPunchModal.classList.add("hidden");
 });
+saveEditedPunchBtn?.addEventListener("click", saveEditedPunch);
 
-timeOffRequests.addEventListener("click", async (event) => {
-  const approveBtn = event.target.closest(".approve-timeoff-btn");
-  const rejectBtn = event.target.closest(".reject-timeoff-btn");
-
-  if (approveBtn) await approveTimeOffRequest(approveBtn.dataset.id);
-  if (rejectBtn) await rejectTimeOffRequest(rejectBtn.dataset.id);
-});
-
-buildScheduleWeekBtn.addEventListener("click", buildScheduleWeekGrid);
-postScheduleBtn.addEventListener("click", postEmployeeSchedule);
-saveScheduleEditBtn.addEventListener("click", saveScheduleEdit);
-cancelScheduleEditBtn.addEventListener("click", resetScheduleForm);
-removeScheduleBtn.addEventListener("click", removeScheduleShift);
-
-$("loadAdminSchedulesBtn").addEventListener("click", loadAdminSchedules);
-$("loadAdminPunchesBtn").addEventListener("click", loadAdminPunchEditor);
-
-scheduleStartTime.addEventListener("change", updateSelectedDayHoursPreview);
-scheduleEndTime.addEventListener("change", updateSelectedDayHoursPreview);
-
-scheduleWeekGrid.addEventListener("click", (event) => {
-  const dayButton = event.target.closest(".schedule-day-btn");
-  if (!dayButton || dayButton.disabled) return;
-
-  document.querySelectorAll(".schedule-day-btn").forEach((button) => {
-    button.classList.remove("active-day");
-  });
-
-  dayButton.classList.add("active-day");
-
-  scheduleDate.value = dayButton.dataset.date;
-  selectedScheduleDayTitle.textContent = `${dayButton.dataset.day} · ${dayButton.dataset.display}`;
-
-  if (dayButton.dataset.scheduleId) {
-    editingScheduleId.value = dayButton.dataset.scheduleId;
-    scheduleStartTime.value = dayButton.dataset.startTime || "";
-    scheduleEndTime.value = dayButton.dataset.endTime || "";
-    scheduleLocation.value = dayButton.dataset.location || "";
-    scheduleNotes.value = dayButton.dataset.notes || "";
-
-    postScheduleBtn.classList.add("hidden");
-    saveScheduleEditBtn.classList.remove("hidden");
-    cancelScheduleEditBtn.classList.remove("hidden");
-    removeScheduleBtn.classList.remove("hidden");
-  } else {
-    resetScheduleForm(false);
-    scheduleDate.value = dayButton.dataset.date;
-    selectedScheduleDayTitle.textContent = `${dayButton.dataset.day} · ${dayButton.dataset.display}`;
-  }
-
-  updateSelectedDayHoursPreview();
-  selectedScheduleDayBox.classList.remove("hidden");
-});
-
-adminScheduleRecords.addEventListener("click", async (event) => {
-  const toggleBtn = event.target.closest(".admin-employee-schedule-toggle");
-  const editBtn = event.target.closest(".admin-edit-shift-btn");
-  const removeBtn = event.target.closest(".admin-remove-shift-btn");
-
-  if (toggleBtn) {
-    const target = document.getElementById(toggleBtn.dataset.target);
-    if (target) target.classList.toggle("hidden");
-  }
-
-  if (editBtn) {
-    showPage("adminScheduleBuilderPage");
-
-    scheduleEmployeeEmail.value = editBtn.dataset.email || "";
-    scheduleEmployeeName.value = editBtn.dataset.name || "";
-    adminScheduleBuilderWeekPicker.value = adminScheduleWeekPicker.value || getCurrentWeekValue();
-
-    await buildScheduleWeekGrid();
-
-    const matchingDay = document.querySelector(
-      `.schedule-day-btn[data-schedule-id="${editBtn.dataset.id}"]`
-    );
-
-    if (matchingDay) {
-      matchingDay.click();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  }
-
-  if (removeBtn) {
-    await softDeleteSchedule(removeBtn.dataset.id);
-  }
-});
-
-adminPunchEditorRecords.addEventListener("click", async (event) => {
-  const editBtn = event.target.closest(".admin-edit-punch-btn");
-  const deleteBtn = event.target.closest(".admin-delete-punch-btn");
-
-  if (editBtn) openEditPunchModal(editBtn);
-  if (deleteBtn) await softDeletePunch(deleteBtn.dataset.id);
-});
-
-closeEditPunchBtn.addEventListener("click", () => {
-  editPunchModal.classList.add("hidden");
-});
-
-editPunchModal.addEventListener("click", (event) => {
-  if (event.target === editPunchModal) {
-    editPunchModal.classList.add("hidden");
-  }
-});
-
-saveEditedPunchBtn.addEventListener("click", saveEditedPunch);
-
-prevEmployeeWeekBtn.addEventListener("click", async () => {
+prevEmployeeWeekBtn?.addEventListener("click", async () => {
   currentEmployeeWeekStart.setDate(currentEmployeeWeekStart.getDate() - 7);
   await loadMyWeeklySchedule();
 });
 
-nextEmployeeWeekBtn.addEventListener("click", async () => {
+nextEmployeeWeekBtn?.addEventListener("click", async () => {
   currentEmployeeWeekStart.setDate(currentEmployeeWeekStart.getDate() + 7);
   await loadMyWeeklySchedule();
 });
 
-myScheduleCalendar.addEventListener("click", async (event) => {
+myScheduleCalendar?.addEventListener("click", async (event) => {
   const dayBtn = event.target.closest(".employee-schedule-day");
-  if (!dayBtn || !dayBtn.dataset.date) return;
+  if (!dayBtn?.dataset.date) return;
   await showScheduleDetailsForDate(dayBtn.dataset.date);
 });
 
-function openMenu() {
-  sideMenu.classList.remove("hidden");
-  menuOverlay.classList.remove("hidden");
-}
+/* =========================
+   4. Employee dropdown for schedule builder
+   =========================
+   This section replaces manual employee typing with a dropdown.
 
-function closeMenu() {
-  sideMenu.classList.add("hidden");
-  menuOverlay.classList.add("hidden");
-}
+   How it works:
+   - The dropdown is filled from Firebase employeeNames + employees.
+   - When admin picks a person, this fills hidden email/name fields.
+   - The rest of the schedule builder still reads the hidden fields, so
+     existing schedule saving/editing logic stays the same.
 
-function showPage(pageId) {
-  document.querySelectorAll(".app-page").forEach((page) => {
-    page.classList.add("hidden");
-    page.classList.remove("active-page");
-  });
+   It is backwards-compatible:
+   - If your HTML already has <select id="scheduleEmployeeSelect">, it uses it.
+   - If not, this code creates the dropdown above the old email/name inputs.
+   - The old email/name inputs are still filled automatically so the rest of
+     the schedule code keeps working.
+*/
 
-  const selectedPage = $(pageId);
+function setupEmployeeDropdown() {
+  if (!scheduleEmployeeEmail || !scheduleEmployeeName) return;
 
-  if (selectedPage) {
-    selectedPage.classList.remove("hidden");
-    selectedPage.classList.add("active-page");
+  if (!scheduleEmployeeSelect) {
+    scheduleEmployeeSelect = document.createElement("select");
+    scheduleEmployeeSelect.id = "scheduleEmployeeSelect";
+    scheduleEmployeeSelect.className = scheduleEmployeeEmail.className || "";
+    scheduleEmployeeSelect.innerHTML = `<option value="">Select employee...</option>`;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "schedule-employee-dropdown-wrap";
+
+    const label = document.createElement("label");
+    label.setAttribute("for", "scheduleEmployeeSelect");
+    label.textContent = "Employee";
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(scheduleEmployeeSelect);
+    scheduleEmployeeEmail.parentNode.insertBefore(wrapper, scheduleEmployeeEmail);
   }
 
-  document.querySelectorAll(".menu-link").forEach((button) => {
-    button.classList.toggle("active-menu-link", button.dataset.page === pageId);
-  });
+  scheduleEmployeeSelect.classList.add("employee-select");
+  scheduleEmployeeSelect.onchange = handleEmployeeDropdownChange;
+
+  // Hide the old fields, but keep them in the HTML so existing functions can use their values.
+  scheduleEmployeeEmail.type = "hidden";
+  scheduleEmployeeName.type = "hidden";
 }
+
+async function refreshEmployeeDropdown() {
+  if (!scheduleEmployeeSelect) return;
+
+  cachedEmployees = await getEmployeesForDropdown();
+
+  const previousEmail = scheduleEmployeeEmail?.value?.trim().toLowerCase() || "";
+
+  scheduleEmployeeSelect.innerHTML = `
+    <option value="">Select employee...</option>
+    ${cachedEmployees.map((employee) => `
+      <option value="${escapeHTML(employee.email)}">
+        ${escapeHTML(employee.name)} (${escapeHTML(employee.email)})
+      </option>
+    `).join("")}
+  `;
+
+  if (previousEmail && cachedEmployees.some((employee) => employee.email === previousEmail)) {
+    scheduleEmployeeSelect.value = previousEmail;
+  }
+}
+
+async function getEmployeesForDropdown() {
+  const employeesByEmail = new Map();
+
+  // Primary source: employeeNames collection. This is the cleanest list for the dropdown.
+  const namesSnapshot = await getDocs(collection(db, "employeeNames"));
+  namesSnapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    const email = (data.email || docSnap.id || "").toLowerCase().trim();
+    const name = (data.name || email).trim();
+    if (email) employeesByEmail.set(email, { email, name });
+  });
+
+  // Backup source: employees collection. This helps if an account exists but employeeNames is missing.
+  const employeesSnapshot = await getDocs(collection(db, "employees"));
+  employeesSnapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    const email = (data.email || "").toLowerCase().trim();
+    const name = (data.name || email).trim();
+    if (email && !employeesByEmail.has(email)) employeesByEmail.set(email, { email, name });
+  });
+
+  return [...employeesByEmail.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function handleEmployeeDropdownChange() {
+  const selectedEmail = scheduleEmployeeSelect.value;
+  const selectedEmployee = cachedEmployees.find((employee) => employee.email === selectedEmail);
+
+  scheduleEmployeeEmail.value = selectedEmployee?.email || "";
+  scheduleEmployeeName.value = selectedEmployee?.name || "";
+
+  scheduleWeekGrid.innerHTML = "";
+  scheduleBuilderWeekTotal.classList.add("hidden");
+  selectedScheduleDayBox.classList.add("hidden");
+  resetScheduleForm();
+}
+
+function setScheduleEmployee(email, name) {
+  const cleanEmail = (email || "").toLowerCase().trim();
+  scheduleEmployeeEmail.value = cleanEmail;
+  scheduleEmployeeName.value = name || cleanEmail;
+
+  if (scheduleEmployeeSelect) {
+    const optionExists = [...scheduleEmployeeSelect.options].some((option) => option.value === cleanEmail);
+
+    if (!optionExists && cleanEmail) {
+      const option = document.createElement("option");
+      option.value = cleanEmail;
+      option.textContent = `${name || cleanEmail} (${cleanEmail})`;
+      scheduleEmployeeSelect.appendChild(option);
+    }
+
+    scheduleEmployeeSelect.value = cleanEmail;
+  }
+}
+
+function getSelectedScheduleEmployee() {
+  const employeeEmail = scheduleEmployeeEmail.value.trim().toLowerCase();
+  const employeeName = scheduleEmployeeName.value.trim();
+  return { employeeEmail, employeeName };
+}
+
+/* =========================
+   5. Clock punches
+   ========================= */
 
 async function savePunch(type) {
   const user = auth.currentUser;
   if (!user) return;
 
   const cleanEmail = user.email.toLowerCase().trim();
-
-  if (!currentUserName) {
-    currentUserName = await getEmployeeName(user.uid, cleanEmail);
-  }
+  if (!currentUserName) currentUserName = await getEmployeeName(user.uid, cleanEmail);
 
   try {
     await addDoc(collection(db, "punches"), {
@@ -476,17 +500,13 @@ async function loadClockStatus() {
     const cleanEmail = user.email.toLowerCase().trim();
     const q = query(collection(db, "punches"), orderBy("time", "desc"));
     const snapshot = await getDocs(q);
-
     let lastPunch = null;
 
     snapshot.forEach((docSnap) => {
       if (lastPunch) return;
-
       const data = docSnap.data();
-      if (data.deleted === true) return;
-      if (!data.employeeEmail || !data.time) return;
+      if (data.deleted === true || !data.employeeEmail || !data.time) return;
       if (data.employeeEmail.toLowerCase().trim() !== cleanEmail) return;
-
       lastPunch = data;
     });
 
@@ -496,10 +516,8 @@ async function loadClockStatus() {
       return;
     }
 
-    clockStatusText.textContent = lastPunch.type;
-
     const dateObj = lastPunch.time.toDate();
-
+    clockStatusText.textContent = lastPunch.type;
     lastPunchText.textContent = `Last punch: ${dateObj.toLocaleString([], {
       weekday: "short",
       month: "short",
@@ -513,6 +531,10 @@ async function loadClockStatus() {
   }
 }
 
+/* =========================
+   6. Time off requests
+   ========================= */
+
 async function submitTimeOffRequest() {
   const user = auth.currentUser;
   if (!user) return;
@@ -521,22 +543,12 @@ async function submitTimeOffRequest() {
   const endDate = timeOffEndDate.value;
   const reason = timeOffReason.value.trim();
 
-  if (!startDate || !endDate || !reason) {
-    alert("Enter start date, end date, and reason.");
-    return;
-  }
-
-  if (new Date(`${endDate}T00:00`) < new Date(`${startDate}T00:00`)) {
-    alert("End date cannot be before start date.");
-    return;
-  }
+  if (!startDate || !endDate || !reason) return alert("Enter start date, end date, and reason.");
+  if (new Date(`${endDate}T00:00`) < new Date(`${startDate}T00:00`)) return alert("End date cannot be before start date.");
 
   try {
     const cleanEmail = user.email.toLowerCase().trim();
-
-    if (!currentUserName) {
-      currentUserName = await getEmployeeName(user.uid, cleanEmail);
-    }
+    if (!currentUserName) currentUserName = await getEmployeeName(user.uid, cleanEmail);
 
     await addDoc(collection(db, "timeOffRequests"), {
       employeeId: user.uid,
@@ -550,7 +562,6 @@ async function submitTimeOffRequest() {
     });
 
     timeOffReason.value = "";
-
     alert("Time off request submitted.");
     await loadMyTimeOffRequests();
     await loadMyWeeklySchedule();
@@ -567,15 +578,12 @@ async function loadMyTimeOffRequests() {
     const cleanEmail = user.email.toLowerCase().trim();
     const q = query(collection(db, "timeOffRequests"), orderBy("requestedAt", "desc"));
     const snapshot = await getDocs(q);
-
     let html = "";
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-
       if (!data.employeeEmail) return;
       if (data.employeeEmail.toLowerCase().trim() !== cleanEmail) return;
-
       html += buildMyTimeOffCard(data);
     });
 
@@ -589,7 +597,6 @@ async function loadPendingTimeOffRequests() {
   try {
     const q = query(collection(db, "timeOffRequests"), orderBy("requestedAt", "desc"));
     const snapshot = await getDocs(q);
-
     let html = "";
 
     snapshot.forEach((docSnap) => {
@@ -607,21 +614,16 @@ async function loadPendingTimeOffRequests() {
 async function approveTimeOffRequest(requestId) {
   const adminUser = auth.currentUser;
   if (!adminUser) return;
-
-  const confirmApprove = confirm("Approve this time off request?");
-  if (!confirmApprove) return;
+  if (!confirm("Approve this time off request?")) return;
 
   try {
-    const requestRef = doc(db, "timeOffRequests", requestId);
-
-    await updateDoc(requestRef, {
+    await updateDoc(doc(db, "timeOffRequests", requestId), {
       status: "Approved",
       reviewedBy: adminUser.email.toLowerCase().trim(),
       reviewedAt: serverTimestamp()
     });
 
     alert("Time off request approved.");
-
     await loadPendingTimeOffRequests();
     await loadMyWeeklySchedule();
   } catch (error) {
@@ -632,36 +634,36 @@ async function approveTimeOffRequest(requestId) {
 async function rejectTimeOffRequest(requestId) {
   const adminUser = auth.currentUser;
   if (!adminUser) return;
-
-  const confirmReject = confirm("Reject this time off request?");
-  if (!confirmReject) return;
+  if (!confirm("Reject this time off request?")) return;
 
   try {
-    const requestRef = doc(db, "timeOffRequests", requestId);
-
-    await updateDoc(requestRef, {
+    await updateDoc(doc(db, "timeOffRequests", requestId), {
       status: "Rejected",
       reviewedBy: adminUser.email.toLowerCase().trim(),
       reviewedAt: serverTimestamp()
     });
 
     alert("Time off request rejected.");
-
     await loadPendingTimeOffRequests();
   } catch (error) {
     alert(error.message);
   }
 }
 
-function buildMyTimeOffCard(data) {
-  const statusClass = getStatusClass(data.status);
+async function handleTimeOffRequestClick(event) {
+  const approveBtn = event.target.closest(".approve-timeoff-btn");
+  const rejectBtn = event.target.closest(".reject-timeoff-btn");
+  if (approveBtn) await approveTimeOffRequest(approveBtn.dataset.id);
+  if (rejectBtn) await rejectTimeOffRequest(rejectBtn.dataset.id);
+}
 
+function buildMyTimeOffCard(data) {
   return `
     <div class="request-card">
       <h3>Time Off</h3>
       <p><strong>Dates:</strong> ${escapeHTML(formatDateDisplay(data.startDate))} - ${escapeHTML(formatDateDisplay(data.endDate))}</p>
       <p><strong>Reason:</strong> ${escapeHTML(data.reason)}</p>
-      <span class="status-pill ${statusClass}">${escapeHTML(data.status)}</span>
+      <span class="status-pill ${getStatusClass(data.status)}">${escapeHTML(data.status)}</span>
     </div>
   `;
 }
@@ -674,7 +676,6 @@ function buildAdminTimeOffCard(requestId, data) {
       <p><strong>Dates:</strong> ${escapeHTML(formatDateDisplay(data.startDate))} - ${escapeHTML(formatDateDisplay(data.endDate))}</p>
       <p><strong>Reason:</strong> ${escapeHTML(data.reason)}</p>
       <span class="status-pill status-pending">Pending</span>
-
       <div class="request-actions">
         <button class="approve-btn approve-timeoff-btn" data-id="${requestId}">Approve</button>
         <button class="danger-btn reject-timeoff-btn" data-id="${requestId}">Reject</button>
@@ -683,16 +684,18 @@ function buildAdminTimeOffCard(requestId, data) {
   `;
 }
 
+/* =========================
+   7. Employee schedule view
+   ========================= */
+
 async function loadMyWeeklySchedule() {
   const user = auth.currentUser;
   if (!user) return;
 
   try {
     const cleanEmail = user.email.toLowerCase().trim();
-
     const startOfWeek = getStartOfWeek(currentEmployeeWeekStart);
-    const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 7);
+    const endOfWeek = addDays(startOfWeek, 7);
 
     myScheduleWeekTitle.textContent = `${formatDateShort(startOfWeek)} - ${formatDateShort(addDays(startOfWeek, 6))}`;
 
@@ -714,19 +717,13 @@ async function loadMyWeeklySchedule() {
 function buildEmployeeWeekSchedule(startOfWeek, schedules, timeOff) {
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   let totalMinutes = 0;
-
   let html = `<div class="employee-week-grid">`;
 
   for (let i = 0; i < 7; i++) {
     const dayDate = addDays(startOfWeek, i);
     const dateValue = formatDateInputValue(dayDate);
     const dayShift = schedules.find((shift) => shift.date === dateValue);
-
-    const approvedOff = timeOff.some((request) => {
-      if (request.status !== "Approved") return false;
-      return dateValue >= request.startDate && dateValue <= request.endDate;
-    });
-
+    const approvedOff = timeOff.some((request) => request.status === "Approved" && dateValue >= request.startDate && dateValue <= request.endDate);
     const minutes = dayShift ? calculateShiftMinutes(dayShift.startTime, dayShift.endTime) : 0;
     totalMinutes += minutes;
 
@@ -734,29 +731,15 @@ function buildEmployeeWeekSchedule(startOfWeek, schedules, timeOff) {
       <button class="employee-schedule-day ${dayShift ? "has-shift" : ""} ${approvedOff ? "has-timeoff" : ""}" data-date="${dateValue}">
         <strong>${dayNames[i]}</strong>
         <span>${formatDateShort(dayDate)}</span>
-
-        ${
-          dayShift
-            ? `
-              <div class="shift-time">${formatTimeFrom24Hour(dayShift.startTime)} - ${formatTimeFrom24Hour(dayShift.endTime)}</div>
-              <div class="shift-hours">${formatMinutes(minutes)}</div>
-            `
-            : approvedOff
-              ? `<div class="shift-off">Approved Time Off</div>`
-              : `<div class="shift-off">OFF</div>`
-        }
+        ${dayShift ? `
+          <div class="shift-time">${formatTimeFrom24Hour(dayShift.startTime)} - ${formatTimeFrom24Hour(dayShift.endTime)}</div>
+          <div class="shift-hours">${formatMinutes(minutes)}</div>
+        ` : approvedOff ? `<div class="shift-off">Approved Time Off</div>` : `<div class="shift-off">OFF</div>`}
       </button>
     `;
   }
 
-  html += `</div>`;
-
-  html += `
-    <div class="schedule-total-box">
-      <strong>Weekly Scheduled Total:</strong> ${formatMinutes(totalMinutes)}
-    </div>
-  `;
-
+  html += `</div><div class="schedule-total-box"><strong>Weekly Scheduled Total:</strong> ${formatMinutes(totalMinutes)}</div>`;
   myScheduleCalendar.innerHTML = html;
 }
 
@@ -767,23 +750,15 @@ async function showScheduleDetailsForDate(dateValue) {
   const cleanEmail = user.email.toLowerCase().trim();
   const schedules = await getSchedulesForEmployee(cleanEmail);
   const timeOff = await getTimeOffForEmployee(cleanEmail);
-
   const daySchedules = schedules.filter((item) => item.date === dateValue);
-
-  const approvedOff = timeOff.filter((item) => {
-    if (item.status !== "Approved") return false;
-    return dateValue >= item.startDate && dateValue <= item.endDate;
-  });
+  const approvedOff = timeOff.filter((item) => item.status === "Approved" && dateValue >= item.startDate && dateValue <= item.endDate);
 
   let html = `<div class="selected-date-card"><h3>${escapeHTML(formatDateDisplay(dateValue))}</h3>`;
 
-  if (daySchedules.length === 0 && approvedOff.length === 0) {
-    html += `<p class="info-box">No shift or approved time off for this day.</p>`;
-  }
+  if (daySchedules.length === 0 && approvedOff.length === 0) html += `<p class="info-box">No shift or approved time off for this day.</p>`;
 
   daySchedules.forEach((shift) => {
     const minutes = calculateShiftMinutes(shift.startTime, shift.endTime);
-
     html += `
       <div class="schedule-card">
         <p><strong>Shift:</strong> ${formatTimeFrom24Hour(shift.startTime)} - ${formatTimeFrom24Hour(shift.endTime)}</p>
@@ -803,9 +778,7 @@ async function showScheduleDetailsForDate(dateValue) {
     `;
   });
 
-  html += `</div>`;
-
-  selectedScheduleDetails.innerHTML = html;
+  selectedScheduleDetails.innerHTML = `${html}</div>`;
 }
 
 async function getSchedulesForEmployee(email) {
@@ -815,15 +788,9 @@ async function getSchedulesForEmployee(email) {
 
   snapshot.forEach((docSnap) => {
     const data = docSnap.data();
-
-    if (data.deleted === true) return;
-    if (!data.employeeEmail) return;
+    if (data.deleted === true || !data.employeeEmail) return;
     if (data.employeeEmail.toLowerCase().trim() !== email) return;
-
-    schedules.push({
-      id: docSnap.id,
-      ...data
-    });
+    schedules.push({ id: docSnap.id, ...data });
   });
 
   return schedules;
@@ -837,10 +804,8 @@ async function getTimeOffForEmployee(email) {
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-
       if (!data.employeeEmail) return;
       if (data.employeeEmail.toLowerCase().trim() !== email) return;
-
       requests.push(data);
     });
 
@@ -851,24 +816,18 @@ async function getTimeOffForEmployee(email) {
   }
 }
 
+/* =========================
+   8. Admin schedule builder/view
+   ========================= */
+
 async function buildScheduleWeekGrid() {
   const selectedWeek = adminScheduleBuilderWeekPicker.value;
+  if (!selectedWeek) return alert("Please choose a week first.");
 
-  if (!selectedWeek) {
-    alert("Please choose a week first.");
-    return;
-  }
-
-  const employeeEmail = scheduleEmployeeEmail.value.trim().toLowerCase();
-  const employeeName = scheduleEmployeeName.value.trim();
-
-  if (!employeeEmail || !employeeName) {
-    alert("Enter the employee email and employee name first.");
-    return;
-  }
+  const { employeeEmail, employeeName } = getSelectedScheduleEmployee();
+  if (!employeeEmail || !employeeName) return alert("Choose an employee from the dropdown first.");
 
   const { startOfWeek } = getWeekDateRange(selectedWeek);
-
   let approvedOffDates = new Set();
 
   try {
@@ -879,38 +838,24 @@ async function buildScheduleWeekGrid() {
   }
 
   const employeeSchedules = await getSchedulesForEmployee(employeeEmail);
-
+  const endOfWeek = addDays(startOfWeek, 7);
   const weekSchedules = employeeSchedules.filter((shift) => {
     if (!shift.date) return false;
-
     const shiftDate = new Date(`${shift.date}T00:00`);
-    const endOfWeek = addDays(startOfWeek, 7);
-
     return shiftDate >= startOfWeek && shiftDate < endOfWeek;
   });
 
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-
   let html = "";
   let weeklyMinutes = 0;
 
   for (let i = 0; i < 7; i++) {
     const dayDate = addDays(startOfWeek, i);
     const dateValue = formatDateInputValue(dayDate);
-
-    const displayDate = dayDate.toLocaleDateString([], {
-      month: "short",
-      day: "numeric",
-      year: "numeric"
-    });
-
+    const displayDate = dayDate.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
     const isOff = approvedOffDates.has(dateValue);
     const existingShift = weekSchedules.find((shift) => shift.date === dateValue);
-
-    const dailyMinutes = existingShift
-      ? calculateShiftMinutes(existingShift.startTime, existingShift.endTime)
-      : 0;
-
+    const dailyMinutes = existingShift ? calculateShiftMinutes(existingShift.startTime, existingShift.endTime) : 0;
     weeklyMinutes += dailyMinutes;
 
     html += `
@@ -929,17 +874,11 @@ async function buildScheduleWeekGrid() {
       >
         <strong>${dayNames[i]}</strong>
         <span>${displayDate}</span>
-
-        ${
-          existingShift
-            ? `
-              <span class="scheduled-label">Scheduled</span>
-              <span>${formatTimeFrom24Hour(existingShift.startTime)} - ${formatTimeFrom24Hour(existingShift.endTime)}</span>
-              <span class="day-hours">${formatMinutes(dailyMinutes)}</span>
-            `
-            : ""
-        }
-
+        ${existingShift ? `
+          <span class="scheduled-label">Scheduled</span>
+          <span>${formatTimeFrom24Hour(existingShift.startTime)} - ${formatTimeFrom24Hour(existingShift.endTime)}</span>
+          <span class="day-hours">${formatMinutes(dailyMinutes)}</span>
+        ` : ""}
         ${isOff ? `<span class="blocked-note">Approved Time Off</span>` : ""}
       </button>
     `;
@@ -951,12 +890,42 @@ async function buildScheduleWeekGrid() {
   selectedScheduleDayBox.classList.add("hidden");
 }
 
+function handleScheduleDayClick(event) {
+  const dayButton = event.target.closest(".schedule-day-btn");
+  if (!dayButton || dayButton.disabled) return;
+
+  document.querySelectorAll(".schedule-day-btn").forEach((button) => button.classList.remove("active-day"));
+  dayButton.classList.add("active-day");
+
+  scheduleDate.value = dayButton.dataset.date;
+  selectedScheduleDayTitle.textContent = `${dayButton.dataset.day} · ${dayButton.dataset.display}`;
+
+  if (dayButton.dataset.scheduleId) {
+    editingScheduleId.value = dayButton.dataset.scheduleId;
+    scheduleStartTime.value = dayButton.dataset.startTime || "";
+    scheduleEndTime.value = dayButton.dataset.endTime || "";
+    scheduleLocation.value = dayButton.dataset.location || "";
+    scheduleNotes.value = dayButton.dataset.notes || "";
+
+    postScheduleBtn.classList.add("hidden");
+    saveScheduleEditBtn.classList.remove("hidden");
+    cancelScheduleEditBtn.classList.remove("hidden");
+    removeScheduleBtn.classList.remove("hidden");
+  } else {
+    resetScheduleForm(false);
+    scheduleDate.value = dayButton.dataset.date;
+    selectedScheduleDayTitle.textContent = `${dayButton.dataset.day} · ${dayButton.dataset.display}`;
+  }
+
+  updateSelectedDayHoursPreview();
+  selectedScheduleDayBox.classList.remove("hidden");
+}
+
 async function postEmployeeSchedule() {
   const adminUser = auth.currentUser;
   if (!adminUser) return;
 
-  const employeeEmail = scheduleEmployeeEmail.value.trim().toLowerCase();
-  const employeeName = scheduleEmployeeName.value.trim();
+  const { employeeEmail, employeeName } = getSelectedScheduleEmployee();
   const dateValue = scheduleDate.value;
   const startTimeValue = scheduleStartTime.value;
   const endTimeValue = scheduleEndTime.value;
@@ -964,41 +933,24 @@ async function postEmployeeSchedule() {
   const notesValue = scheduleNotes.value.trim();
 
   if (!employeeEmail || !employeeName || !dateValue || !startTimeValue || !endTimeValue) {
-    alert("Enter employee email, employee name, choose a day, start time, and end time.");
-    return;
+    return alert("Choose an employee, choose a day, enter start time, and enter end time.");
   }
 
-  if (calculateShiftMinutes(startTimeValue, endTimeValue) <= 0) {
-    alert("End time must be after start time.");
-    return;
-  }
+  if (calculateShiftMinutes(startTimeValue, endTimeValue) <= 0) return alert("End time must be after start time.");
 
   try {
     const approvedOffDates = await getApprovedTimeOffDates(employeeEmail);
-
-    if (approvedOffDates.has(dateValue)) {
-      alert("This employee has approved time off on this day. You cannot schedule them.");
-      return;
-    }
+    if (approvedOffDates.has(dateValue)) return alert("This employee has approved time off on this day. You cannot schedule them.");
 
     const existingShift = await getExistingScheduleForEmployeeDate(employeeEmail, dateValue);
-
-    if (existingShift) {
-      alert("This employee is already scheduled on this day. Click the scheduled day to edit it instead.");
-      return;
-    }
+    if (existingShift) return alert("This employee is already scheduled on this day. Click the scheduled day to edit it instead.");
   } catch (error) {
     console.error("Could not check schedule before posting:", error);
-    alert("Could not check existing schedule/time off before posting.");
-    return;
+    return alert("Could not check existing schedule/time off before posting.");
   }
 
   const scheduleDateObj = new Date(`${dateValue}T${startTimeValue}`);
-
-  if (Number.isNaN(scheduleDateObj.getTime())) {
-    alert("Please enter a valid schedule date and time.");
-    return;
-  }
+  if (Number.isNaN(scheduleDateObj.getTime())) return alert("Please enter a valid schedule date and time.");
 
   try {
     const weekValue = getWeekValueFromDate(scheduleDateObj);
@@ -1019,10 +971,8 @@ async function postEmployeeSchedule() {
     });
 
     alert("Schedule posted for this day.");
-
     resetScheduleForm();
     adminScheduleWeekPicker.value = weekValue;
-
     await buildScheduleWeekGrid();
     await loadAdminSchedules();
   } catch (error) {
@@ -1041,17 +991,8 @@ async function saveScheduleEdit() {
   const locationValue = scheduleLocation.value.trim();
   const notesValue = scheduleNotes.value.trim();
 
-  if (!scheduleId || !dateValue || !startTimeValue || !endTimeValue) {
-    alert("Missing shift information.");
-    return;
-  }
-
-  if (calculateShiftMinutes(startTimeValue, endTimeValue) <= 0) {
-    alert("End time must be after start time.");
-    return;
-  }
-
-  const scheduleDateObj = new Date(`${dateValue}T${startTimeValue}`);
+  if (!scheduleId || !dateValue || !startTimeValue || !endTimeValue) return alert("Missing shift information.");
+  if (calculateShiftMinutes(startTimeValue, endTimeValue) <= 0) return alert("End time must be after start time.");
 
   try {
     await updateDoc(doc(db, "schedules", scheduleId), {
@@ -1059,13 +1000,12 @@ async function saveScheduleEdit() {
       endTime: endTimeValue,
       location: locationValue,
       notes: notesValue,
-      scheduleDateTime: scheduleDateObj,
+      scheduleDateTime: new Date(`${dateValue}T${startTimeValue}`),
       editedBy: adminUser.email.toLowerCase().trim(),
       editedAt: serverTimestamp()
     });
 
     alert("Shift updated.");
-
     resetScheduleForm();
     await buildScheduleWeekGrid();
     await loadAdminSchedules();
@@ -1076,17 +1016,10 @@ async function saveScheduleEdit() {
 
 async function removeScheduleShift() {
   const scheduleId = editingScheduleId.value;
-
-  if (!scheduleId) {
-    alert("No shift selected.");
-    return;
-  }
-
-  const confirmRemove = confirm("Remove this shift from the schedule?");
-  if (!confirmRemove) return;
+  if (!scheduleId) return alert("No shift selected.");
+  if (!confirm("Remove this shift from the schedule?")) return;
 
   await softDeleteSchedule(scheduleId);
-
   resetScheduleForm();
   await buildScheduleWeekGrid();
 }
@@ -1103,7 +1036,6 @@ async function softDeleteSchedule(scheduleId) {
     });
 
     alert("Shift removed.");
-
     await loadAdminSchedules();
     await loadMyWeeklySchedule();
   } catch (error) {
@@ -1113,7 +1045,6 @@ async function softDeleteSchedule(scheduleId) {
 
 function resetScheduleForm(clearSelectedDay = true) {
   editingScheduleId.value = "";
-
   if (clearSelectedDay) {
     scheduleDate.value = "";
     selectedScheduleDayBox.classList.add("hidden");
@@ -1128,7 +1059,6 @@ function resetScheduleForm(clearSelectedDay = true) {
   saveScheduleEditBtn.classList.add("hidden");
   cancelScheduleEditBtn.classList.add("hidden");
   removeScheduleBtn.classList.add("hidden");
-
   updateSelectedDayHoursPreview();
 }
 
@@ -1149,14 +1079,9 @@ async function getApprovedTimeOffDates(employeeEmail) {
 
   snapshot.forEach((docSnap) => {
     const data = docSnap.data();
-
-    if (data.status !== "Approved") return;
-    if (!data.employeeEmail) return;
+    if (data.status !== "Approved" || !data.employeeEmail) return;
     if (data.employeeEmail.toLowerCase().trim() !== employeeEmail) return;
-
-    getDatesBetween(data.startDate, data.endDate).forEach((dateValue) => {
-      dates.add(dateValue);
-    });
+    getDatesBetween(data.startDate, data.endDate).forEach((dateValue) => dates.add(dateValue));
   });
 
   return dates;
@@ -1164,27 +1089,17 @@ async function getApprovedTimeOffDates(employeeEmail) {
 
 async function loadAdminSchedules() {
   adminScheduleRecords.innerHTML = "";
-
   const selectedWeek = adminScheduleWeekPicker.value;
-
-  if (!selectedWeek) {
-    alert("Please choose a week first.");
-    return;
-  }
+  if (!selectedWeek) return alert("Please choose a week first.");
 
   try {
     const q = query(collection(db, "schedules"), orderBy("scheduleDateTime", "asc"));
     const snapshot = await getDocs(q);
-
     const grouped = {};
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-
-      if (data.deleted === true) return;
-      if (data.week !== selectedWeek) return;
-      if (!data.employeeEmail) return;
-
+      if (data.deleted === true || data.week !== selectedWeek || !data.employeeEmail) return;
       const cleanEmail = data.employeeEmail.toLowerCase().trim();
 
       if (!grouped[cleanEmail]) {
@@ -1195,26 +1110,16 @@ async function loadAdminSchedules() {
         };
       }
 
-      grouped[cleanEmail].shifts.push({
-        id: docSnap.id,
-        ...data
-      });
+      grouped[cleanEmail].shifts.push({ id: docSnap.id, ...data });
     });
 
     const employees = Object.values(grouped);
-
     if (employees.length === 0) {
       adminScheduleRecords.innerHTML = `<p class="info-box">No schedules found for this week.</p>`;
       return;
     }
 
-    let html = "";
-
-    employees.forEach((employee, index) => {
-      html += buildAdminEmployeeScheduleGroup(employee, index);
-    });
-
-    adminScheduleRecords.innerHTML = html;
+    adminScheduleRecords.innerHTML = employees.map(buildAdminEmployeeScheduleGroup).join("");
   } catch (error) {
     alert(error.message);
   }
@@ -1223,65 +1128,70 @@ async function loadAdminSchedules() {
 function buildAdminEmployeeScheduleGroup(employee, index) {
   const targetId = `employeeScheduleGroup_${index}`;
   const sortedShifts = [...employee.shifts].sort((a, b) => a.date.localeCompare(b.date));
+  const totalMinutes = sortedShifts.reduce((total, shift) => total + calculateShiftMinutes(shift.startTime, shift.endTime), 0);
 
-  let totalMinutes = 0;
-
-  sortedShifts.forEach((shift) => {
-    totalMinutes += calculateShiftMinutes(shift.startTime, shift.endTime);
-  });
-
-  let html = `
+  return `
     <div class="employee-schedule-group">
       <button class="admin-employee-schedule-toggle" data-target="${targetId}">
         <span>${escapeHTML(employee.employeeName)}</span>
         <small>${escapeHTML(employee.employeeEmail)} · ${formatMinutes(totalMinutes)}</small>
       </button>
-
       <div id="${targetId}" class="admin-employee-schedule-body hidden">
-        <div class="schedule-total-box">
-          <strong>Weekly Scheduled Total:</strong> ${formatMinutes(totalMinutes)}
-        </div>
-  `;
-
-  sortedShifts.forEach((shift) => {
-    const minutes = calculateShiftMinutes(shift.startTime, shift.endTime);
-
-    html += `
-      <div class="schedule-card">
-        <h3>${escapeHTML(formatDateDisplay(shift.date))}</h3>
-        <p><strong>Time:</strong> ${formatTimeFrom24Hour(shift.startTime)} - ${formatTimeFrom24Hour(shift.endTime)}</p>
-        <p><strong>Scheduled Hours:</strong> ${formatMinutes(minutes)}</p>
-        <p><strong>Location:</strong> ${escapeHTML(shift.location || "Not listed")}</p>
-        <p><strong>Notes:</strong> ${escapeHTML(shift.notes || "No notes")}</p>
-
-        <div class="request-actions">
-          <button
-            class="edit-small-btn admin-edit-shift-btn"
-            data-id="${escapeHTML(shift.id)}"
-            data-email="${escapeHTML(employee.employeeEmail)}"
-            data-name="${escapeHTML(employee.employeeName)}"
-          >
-            Edit Shift
-          </button>
-
-          <button
-            class="danger-btn admin-remove-shift-btn"
-            data-id="${escapeHTML(shift.id)}"
-          >
-            Remove Shift
-          </button>
-        </div>
-      </div>
-    `;
-  });
-
-  html += `
+        <div class="schedule-total-box"><strong>Weekly Scheduled Total:</strong> ${formatMinutes(totalMinutes)}</div>
+        ${sortedShifts.map((shift) => buildAdminShiftCard(employee, shift)).join("")}
       </div>
     </div>
   `;
-
-  return html;
 }
+
+function buildAdminShiftCard(employee, shift) {
+  const minutes = calculateShiftMinutes(shift.startTime, shift.endTime);
+
+  return `
+    <div class="schedule-card">
+      <h3>${escapeHTML(formatDateDisplay(shift.date))}</h3>
+      <p><strong>Time:</strong> ${formatTimeFrom24Hour(shift.startTime)} - ${formatTimeFrom24Hour(shift.endTime)}</p>
+      <p><strong>Scheduled Hours:</strong> ${formatMinutes(minutes)}</p>
+      <p><strong>Location:</strong> ${escapeHTML(shift.location || "Not listed")}</p>
+      <p><strong>Notes:</strong> ${escapeHTML(shift.notes || "No notes")}</p>
+      <div class="request-actions">
+        <button class="edit-small-btn admin-edit-shift-btn" data-id="${escapeHTML(shift.id)}" data-email="${escapeHTML(employee.employeeEmail)}" data-name="${escapeHTML(employee.employeeName)}">Edit Shift</button>
+        <button class="danger-btn admin-remove-shift-btn" data-id="${escapeHTML(shift.id)}">Remove Shift</button>
+      </div>
+    </div>
+  `;
+}
+
+async function handleAdminScheduleRecordsClick(event) {
+  const toggleBtn = event.target.closest(".admin-employee-schedule-toggle");
+  const editBtn = event.target.closest(".admin-edit-shift-btn");
+  const removeBtn = event.target.closest(".admin-remove-shift-btn");
+
+  if (toggleBtn) {
+    const target = document.getElementById(toggleBtn.dataset.target);
+    if (target) target.classList.toggle("hidden");
+  }
+
+  if (editBtn) {
+    showPage("adminScheduleBuilderPage");
+    await refreshEmployeeDropdown();
+    setScheduleEmployee(editBtn.dataset.email || "", editBtn.dataset.name || "");
+    adminScheduleBuilderWeekPicker.value = adminScheduleWeekPicker.value || getCurrentWeekValue();
+    await buildScheduleWeekGrid();
+
+    const matchingDay = document.querySelector(`.schedule-day-btn[data-schedule-id="${editBtn.dataset.id}"]`);
+    if (matchingDay) {
+      matchingDay.click();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
+
+  if (removeBtn) await softDeleteSchedule(removeBtn.dataset.id);
+}
+
+/* =========================
+   9. Time edit requests
+   ========================= */
 
 async function submitTimeEditRequest() {
   const user = auth.currentUser;
@@ -1292,24 +1202,14 @@ async function submitTimeEditRequest() {
   const typeValue = editType.value;
   const reasonValue = editReason.value.trim();
 
-  if (!dateValue || !timeValue || !typeValue || !reasonValue) {
-    alert("Please enter the date, time, punch type, and reason.");
-    return;
-  }
+  if (!dateValue || !timeValue || !typeValue || !reasonValue) return alert("Please enter the date, time, punch type, and reason.");
 
   const requestedDateTime = new Date(`${dateValue}T${timeValue}`);
-
-  if (Number.isNaN(requestedDateTime.getTime())) {
-    alert("Please enter a valid date and time.");
-    return;
-  }
+  if (Number.isNaN(requestedDateTime.getTime())) return alert("Please enter a valid date and time.");
 
   try {
     const cleanEmail = user.email.toLowerCase().trim();
-
-    if (!currentUserName) {
-      currentUserName = await getEmployeeName(user.uid, cleanEmail);
-    }
+    if (!currentUserName) currentUserName = await getEmployeeName(user.uid, cleanEmail);
 
     await addDoc(collection(db, "timeEditRequests"), {
       employeeId: user.uid,
@@ -1326,7 +1226,6 @@ async function submitTimeEditRequest() {
 
     editReason.value = "";
     alert("Time edit request submitted for admin approval.");
-
     await loadMyTimeEditRequests();
   } catch (error) {
     alert(error.message);
@@ -1341,15 +1240,12 @@ async function loadMyTimeEditRequests() {
     const cleanEmail = user.email.toLowerCase().trim();
     const q = query(collection(db, "timeEditRequests"), orderBy("requestedAt", "desc"));
     const snapshot = await getDocs(q);
-
     let html = "";
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-
       if (!data.employeeEmail) return;
       if (data.employeeEmail.toLowerCase().trim() !== cleanEmail) return;
-
       html += buildMyRequestCard(data);
     });
 
@@ -1363,14 +1259,11 @@ async function loadPendingTimeEditRequests() {
   try {
     const q = query(collection(db, "timeEditRequests"), orderBy("requestedAt", "desc"));
     const snapshot = await getDocs(q);
-
     let html = "";
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-
       if (data.status !== "Pending") return;
-
       html += buildAdminRequestCard(docSnap.id, data);
     });
 
@@ -1383,25 +1276,15 @@ async function loadPendingTimeEditRequests() {
 async function approveTimeEditRequest(requestId) {
   const adminUser = auth.currentUser;
   if (!adminUser) return;
-
-  const confirmApprove = confirm("Approve this time edit request and add it to the employee punch records?");
-  if (!confirmApprove) return;
+  if (!confirm("Approve this time edit request and add it to the employee punch records?")) return;
 
   try {
     const requestRef = doc(db, "timeEditRequests", requestId);
     const requestSnap = await getDoc(requestRef);
-
-    if (!requestSnap.exists()) {
-      alert("Request not found.");
-      return;
-    }
+    if (!requestSnap.exists()) return alert("Request not found.");
 
     const requestData = requestSnap.data();
-
-    if (requestData.status !== "Pending") {
-      alert("This request has already been handled.");
-      return;
-    }
+    if (requestData.status !== "Pending") return alert("This request has already been handled.");
 
     const approvedDateTime = requestData.requestedDateTime.toDate
       ? requestData.requestedDateTime.toDate()
@@ -1427,7 +1310,6 @@ async function approveTimeEditRequest(requestId) {
     });
 
     alert("Time edit approved and added to punch records.");
-
     await loadPendingTimeEditRequests();
     await loadWeeklyRecords();
   } catch (error) {
@@ -1438,9 +1320,7 @@ async function approveTimeEditRequest(requestId) {
 async function rejectTimeEditRequest(requestId) {
   const adminUser = auth.currentUser;
   if (!adminUser) return;
-
-  const confirmReject = confirm("Reject this time edit request?");
-  if (!confirmReject) return;
+  if (!confirm("Reject this time edit request?")) return;
 
   try {
     await updateDoc(doc(db, "timeEditRequests", requestId), {
@@ -1456,16 +1336,21 @@ async function rejectTimeEditRequest(requestId) {
   }
 }
 
-function buildMyRequestCard(data) {
-  const statusClass = getStatusClass(data.status);
+async function handleTimeEditRequestClick(event) {
+  const approveBtn = event.target.closest(".approve-request-btn");
+  const rejectBtn = event.target.closest(".reject-request-btn");
+  if (approveBtn) await approveTimeEditRequest(approveBtn.dataset.id);
+  if (rejectBtn) await rejectTimeEditRequest(rejectBtn.dataset.id);
+}
 
+function buildMyRequestCard(data) {
   return `
     <div class="request-card">
       <h3>${escapeHTML(data.requestedType)}</h3>
       <p><strong>Date:</strong> ${escapeHTML(data.requestedDate)}</p>
       <p><strong>Time:</strong> ${formatTimeFrom24Hour(data.requestedTime)}</p>
       <p><strong>Reason:</strong> ${escapeHTML(data.reason)}</p>
-      <span class="status-pill ${statusClass}">${escapeHTML(data.status)}</span>
+      <span class="status-pill ${getStatusClass(data.status)}">${escapeHTML(data.status)}</span>
     </div>
   `;
 }
@@ -1480,7 +1365,6 @@ function buildAdminRequestCard(requestId, data) {
       <p><strong>Time:</strong> ${formatTimeFrom24Hour(data.requestedTime)}</p>
       <p><strong>Reason:</strong> ${escapeHTML(data.reason)}</p>
       <span class="status-pill status-pending">Pending</span>
-
       <div class="request-actions">
         <button class="approve-btn approve-request-btn" data-id="${requestId}">Approve</button>
         <button class="danger-btn reject-request-btn" data-id="${requestId}">Reject</button>
@@ -1489,24 +1373,21 @@ function buildAdminRequestCard(requestId, data) {
   `;
 }
 
+/* =========================
+   10. Weekly signatures
+   ========================= */
+
 async function submitWeeklySignature() {
   const user = auth.currentUser;
   if (!user) return;
 
   const typedSignature = signatureInput.value.trim();
-
-  if (!typedSignature) {
-    alert("Please type your full name before submitting.");
-    return;
-  }
+  if (!typedSignature) return alert("Please type your full name before submitting.");
 
   const cleanEmail = user.email.toLowerCase().trim();
   const currentWeek = getCurrentWeekValue();
   const signatureId = `${user.uid}_${currentWeek}`;
-
-  if (!currentUserName) {
-    currentUserName = await getEmployeeName(user.uid, cleanEmail);
-  }
+  if (!currentUserName) currentUserName = await getEmployeeName(user.uid, cleanEmail);
 
   try {
     await setDoc(doc(db, "weeklySignatures", signatureId), {
@@ -1520,7 +1401,6 @@ async function submitWeeklySignature() {
 
     signatureInput.value = "";
     await checkWeeklySignature();
-
     alert("Weekly e-signature submitted.");
   } catch (error) {
     alert(error.message);
@@ -1539,20 +1419,14 @@ async function checkWeeklySignature() {
 
     if (signatureDoc.exists()) {
       const data = signatureDoc.data();
-
       signatureStatus.className = "info-box signature-complete";
-      signatureStatus.innerHTML = `
-        Signed for this week.<br>
-        <strong>Signature:</strong> ${escapeHTML(data.signature)}
-      `;
-
+      signatureStatus.innerHTML = `Signed for this week.<br><strong>Signature:</strong> ${escapeHTML(data.signature)}`;
       signatureInput.disabled = true;
       submitSignatureBtn.disabled = true;
       submitSignatureBtn.textContent = "Signature Complete";
     } else {
       signatureStatus.className = "info-box signature-needed";
       signatureStatus.textContent = "You have not signed for this week yet.";
-
       signatureInput.disabled = false;
       submitSignatureBtn.disabled = false;
       submitSignatureBtn.textContent = "Submit Weekly Signature";
@@ -1565,36 +1439,21 @@ async function checkWeeklySignature() {
 
 async function loadWeeklySignatures() {
   weeklySignatures.innerHTML = "";
-
   const selectedWeek = weekPicker.value;
-
-  if (!selectedWeek) {
-    alert("Please choose a week first.");
-    return;
-  }
+  if (!selectedWeek) return alert("Please choose a week first.");
 
   try {
     const q = query(collection(db, "weeklySignatures"), orderBy("signedAt", "desc"));
     const snapshot = await getDocs(q);
-
     let html = "";
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-
       if (data.week !== selectedWeek) return;
 
-      let signedAtText = "Signed";
-
-      if (data.signedAt && data.signedAt.toDate) {
-        signedAtText = data.signedAt.toDate().toLocaleString([], {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit"
-        });
-      }
+      const signedAtText = data.signedAt?.toDate
+        ? data.signedAt.toDate().toLocaleString([], { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" })
+        : "Signed";
 
       html += `
         <div class="request-card">
@@ -1614,70 +1473,42 @@ async function loadWeeklySignatures() {
   }
 }
 
+/* =========================
+   11. Weekly punch records + admin punch editor
+   ========================= */
+
 async function loadWeeklyRecords() {
   records.innerHTML = "";
-
   const selectedWeek = weekPicker.value;
-
-  if (!selectedWeek) {
-    alert("Please choose a week first.");
-    return;
-  }
+  if (!selectedWeek) return alert("Please choose a week first.");
 
   try {
     const { startOfWeek, endOfWeek } = getWeekDateRange(selectedWeek);
     const weekDates = getWeekDates(startOfWeek);
     const employeeNamesByEmail = await getEmployeeNamesByEmail();
-
     const q = query(collection(db, "punches"), orderBy("time", "asc"));
     const snapshot = await getDocs(q);
-
     const grouped = {};
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-
-      if (data.deleted === true) return;
-      if (!data.time || !data.employeeEmail) return;
-
+      if (data.deleted === true || !data.time || !data.employeeEmail) return;
       const dateObj = data.time.toDate();
-
       if (dateObj < startOfWeek || dateObj >= endOfWeek) return;
 
       const cleanEmail = data.employeeEmail.toLowerCase().trim();
-
-      const employeeName =
-        employeeNamesByEmail[cleanEmail] ||
-        data.employeeName ||
-        cleanEmail;
-
-      if (!grouped[cleanEmail]) {
-        grouped[cleanEmail] = {
-          name: employeeName,
-          days: emptyWeek()
-        };
-      }
-
+      const employeeName = employeeNamesByEmail[cleanEmail] || data.employeeName || cleanEmail;
+      if (!grouped[cleanEmail]) grouped[cleanEmail] = { name: employeeName, days: emptyWeek() };
       addPunchToDay(grouped[cleanEmail].days, data, dateObj);
     });
 
     const employees = Object.values(grouped);
-
     if (employees.length === 0) {
       records.innerHTML = `<p class="no-records">No records found for this week.</p>`;
       return;
     }
 
-    employees.forEach((employee) => {
-      const totalMinutes = calculateWeeklyMinutes(employee.days);
-
-      records.innerHTML += buildWeekTable(
-        employee.name,
-        employee.days,
-        totalMinutes,
-        weekDates
-      );
-    });
+    records.innerHTML = employees.map((employee) => buildWeekTable(employee.name, employee.days, calculateWeeklyMinutes(employee.days), weekDates)).join("");
   } catch (error) {
     alert(error.message);
   }
@@ -1685,68 +1516,30 @@ async function loadWeeklyRecords() {
 
 async function loadMyHistory() {
   myHistoryRecords.innerHTML = "";
-
   const user = auth.currentUser;
   if (!user) return;
 
   const selectedWeek = myWeekPicker.value;
-
-  if (!selectedWeek) {
-    alert("Please choose a week first.");
-    return;
-  }
+  if (!selectedWeek) return alert("Please choose a week first.");
 
   try {
     const cleanEmail = user.email.toLowerCase().trim();
     const { startOfWeek, endOfWeek } = getWeekDateRange(selectedWeek);
     const weekDates = getWeekDates(startOfWeek);
-
     const q = query(collection(db, "punches"), orderBy("time", "asc"));
     const snapshot = await getDocs(q);
-
     const days = emptyWeek();
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-
-      if (data.deleted === true) return;
-      if (!data.time || !data.employeeEmail) return;
+      if (data.deleted === true || !data.time || !data.employeeEmail) return;
       if (data.employeeEmail.toLowerCase().trim() !== cleanEmail) return;
-
       const dateObj = data.time.toDate();
-
       if (dateObj < startOfWeek || dateObj >= endOfWeek) return;
-
       addPunchToDay(days, data, dateObj);
     });
 
-    const totalMinutes = calculateWeeklyMinutes(days);
-
-    myHistoryRecords.innerHTML = `
-      <table class="my-history-table">
-        <tr>
-          ${createHeaderCell("Sunday", weekDates[0])}
-          ${createHeaderCell("Monday", weekDates[1])}
-          ${createHeaderCell("Tuesday", weekDates[2])}
-          ${createHeaderCell("Wednesday", weekDates[3])}
-          ${createHeaderCell("Thursday", weekDates[4])}
-          ${createHeaderCell("Friday", weekDates[5])}
-          ${createHeaderCell("Saturday", weekDates[6])}
-          <th>Total<br>Hours</th>
-        </tr>
-
-        <tr>
-          ${createDayCell(days.Sunday)}
-          ${createDayCell(days.Monday)}
-          ${createDayCell(days.Tuesday)}
-          ${createDayCell(days.Wednesday)}
-          ${createDayCell(days.Thursday)}
-          ${createDayCell(days.Friday)}
-          ${createDayCell(days.Saturday)}
-          <td class="total-hours">${formatMinutes(totalMinutes)}</td>
-        </tr>
-      </table>
-    `;
+    myHistoryRecords.innerHTML = buildWeekTable("My Weekly History", days, calculateWeeklyMinutes(days), weekDates).replace("employee-card", "employee-card my-history-card");
   } catch (error) {
     alert(error.message);
   }
@@ -1754,45 +1547,28 @@ async function loadMyHistory() {
 
 async function loadAdminPunchEditor() {
   adminPunchEditorRecords.innerHTML = "";
-
   const selectedWeek = adminEditWeekPicker.value;
-
-  if (!selectedWeek) {
-    alert("Please choose a week first.");
-    return;
-  }
+  if (!selectedWeek) return alert("Please choose a week first.");
 
   try {
     const { startOfWeek, endOfWeek } = getWeekDateRange(selectedWeek);
     const employeeNamesByEmail = await getEmployeeNamesByEmail();
-
     const q = query(collection(db, "punches"), orderBy("time", "asc"));
     const snapshot = await getDocs(q);
-
     let html = "";
 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
-
-      if (data.deleted === true) return;
-      if (!data.time || !data.employeeEmail) return;
-
+      if (data.deleted === true || !data.time || !data.employeeEmail) return;
       const dateObj = data.time.toDate();
-
       if (dateObj < startOfWeek || dateObj >= endOfWeek) return;
 
       const cleanEmail = data.employeeEmail.toLowerCase().trim();
-
-      const employeeName =
-        employeeNamesByEmail[cleanEmail] ||
-        data.employeeName ||
-        cleanEmail;
-
+      const employeeName = employeeNamesByEmail[cleanEmail] || data.employeeName || cleanEmail;
       html += buildAdminPunchRow(docSnap.id, data, employeeName, dateObj);
     });
 
-    adminPunchEditorRecords.innerHTML =
-      html || `<p class="info-box">No punches found for this week.</p>`;
+    adminPunchEditorRecords.innerHTML = html || `<p class="info-box">No punches found for this week.</p>`;
   } catch (error) {
     alert(error.message);
   }
@@ -1801,14 +1577,7 @@ async function loadAdminPunchEditor() {
 function buildAdminPunchRow(punchId, data, employeeName, dateObj) {
   const dateValue = formatDateInputValue(dateObj);
   const timeValue = `${String(dateObj.getHours()).padStart(2, "0")}:${String(dateObj.getMinutes()).padStart(2, "0")}`;
-
-  const displayTime = dateObj.toLocaleString([], {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  const displayTime = dateObj.toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 
   return `
     <div class="admin-punch-row">
@@ -1816,27 +1585,19 @@ function buildAdminPunchRow(punchId, data, employeeName, dateObj) {
       <p><strong>Email:</strong> ${escapeHTML(data.employeeEmail)}</p>
       <p><strong>Punch:</strong> ${escapeHTML(data.type)}</p>
       <p><strong>Time:</strong> ${escapeHTML(displayTime)}</p>
-
       <div class="admin-punch-actions">
-        <button
-          class="edit-small-btn admin-edit-punch-btn"
-          data-id="${escapeHTML(punchId)}"
-          data-date="${escapeHTML(dateValue)}"
-          data-time="${escapeHTML(timeValue)}"
-          data-type="${escapeHTML(data.type)}"
-        >
-          Edit
-        </button>
-
-        <button
-          class="danger-btn admin-delete-punch-btn"
-          data-id="${escapeHTML(punchId)}"
-        >
-          Delete
-        </button>
+        <button class="edit-small-btn admin-edit-punch-btn" data-id="${escapeHTML(punchId)}" data-date="${escapeHTML(dateValue)}" data-time="${escapeHTML(timeValue)}" data-type="${escapeHTML(data.type)}">Edit</button>
+        <button class="danger-btn admin-delete-punch-btn" data-id="${escapeHTML(punchId)}">Delete</button>
       </div>
     </div>
   `;
+}
+
+function handleAdminPunchEditorClick(event) {
+  const editBtn = event.target.closest(".admin-edit-punch-btn");
+  const deleteBtn = event.target.closest(".admin-delete-punch-btn");
+  if (editBtn) openEditPunchModal(editBtn);
+  if (deleteBtn) softDeletePunch(deleteBtn.dataset.id);
 }
 
 function openEditPunchModal(button) {
@@ -1844,7 +1605,6 @@ function openEditPunchModal(button) {
   adminEditPunchDate.value = button.dataset.date;
   adminEditPunchTime.value = button.dataset.time;
   adminEditPunchType.value = button.dataset.type;
-
   editPunchModal.classList.remove("hidden");
 }
 
@@ -1857,20 +1617,11 @@ async function saveEditedPunch() {
   const timeValue = adminEditPunchTime.value;
   const typeValue = adminEditPunchType.value;
 
-  if (!punchId || !dateValue || !timeValue || !typeValue) {
-    alert("Please enter date, time, and punch type.");
-    return;
-  }
+  if (!punchId || !dateValue || !timeValue || !typeValue) return alert("Please enter date, time, and punch type.");
 
   const newDateTime = new Date(`${dateValue}T${timeValue}`);
-
-  if (Number.isNaN(newDateTime.getTime())) {
-    alert("Please enter a valid date and time.");
-    return;
-  }
-
-  const confirmEdit = confirm("Save changes to this employee punch?");
-  if (!confirmEdit) return;
+  if (Number.isNaN(newDateTime.getTime())) return alert("Please enter a valid date and time.");
+  if (!confirm("Save changes to this employee punch?")) return;
 
   try {
     await updateDoc(doc(db, "punches", punchId), {
@@ -1882,11 +1633,8 @@ async function saveEditedPunch() {
     });
 
     alert("Punch updated.");
-
     editPunchModal.classList.add("hidden");
-
     await loadAdminPunchEditor();
-
     if (weekPicker.value) await loadWeeklyRecords();
     if (myWeekPicker.value) await loadMyHistory();
   } catch (error) {
@@ -1898,11 +1646,7 @@ async function softDeletePunch(punchId) {
   const adminUser = auth.currentUser;
   if (!adminUser) return;
 
-  const confirmDelete = confirm(
-    "Are you sure you want to delete this punch? It will disappear from records, but it will still be saved in Firebase as deleted."
-  );
-
-  if (!confirmDelete) return;
+  if (!confirm("Are you sure you want to delete this punch? It will disappear from records, but it will still be saved in Firebase as deleted.")) return;
 
   try {
     await updateDoc(doc(db, "punches", punchId), {
@@ -1912,9 +1656,7 @@ async function softDeletePunch(punchId) {
     });
 
     alert("Punch deleted.");
-
     await loadAdminPunchEditor();
-
     if (weekPicker.value) await loadWeeklyRecords();
     if (myWeekPicker.value) await loadMyHistory();
   } catch (error) {
@@ -1922,42 +1664,26 @@ async function softDeletePunch(punchId) {
   }
 }
 
+/* =========================
+   12. Employee name/profile helpers
+   ========================= */
+
 async function saveEmployeeName(uid, email, name, isNewAccount) {
   const cleanEmail = email.toLowerCase().trim();
-
-  const employeeData = {
-    name,
-    email: cleanEmail,
-    updatedAt: serverTimestamp()
-  };
-
-  if (isNewAccount) {
-    employeeData.createdAt = serverTimestamp();
-  }
+  const employeeData = { name, email: cleanEmail, updatedAt: serverTimestamp() };
+  if (isNewAccount) employeeData.createdAt = serverTimestamp();
 
   await setDoc(doc(db, "employees", uid), employeeData, { merge: true });
-
-  await setDoc(doc(db, "employeeNames", cleanEmail), {
-    name,
-    email: cleanEmail,
-    updatedAt: serverTimestamp()
-  }, { merge: true });
+  await setDoc(doc(db, "employeeNames", cleanEmail), { name, email: cleanEmail, updatedAt: serverTimestamp() }, { merge: true });
 }
 
 async function getEmployeeName(uid, email) {
   const cleanEmail = email.toLowerCase().trim();
-
   const employeeDoc = await getDoc(doc(db, "employees", uid));
-
-  if (employeeDoc.exists() && employeeDoc.data().name) {
-    return employeeDoc.data().name;
-  }
+  if (employeeDoc.exists() && employeeDoc.data().name) return employeeDoc.data().name;
 
   const employeeNameDoc = await getDoc(doc(db, "employeeNames", cleanEmail));
-
-  if (employeeNameDoc.exists() && employeeNameDoc.data().name) {
-    return employeeNameDoc.data().name;
-  }
+  if (employeeNameDoc.exists() && employeeNameDoc.data().name) return employeeNameDoc.data().name;
 
   return "";
 }
@@ -1968,10 +1694,7 @@ async function getEmployeeNamesByEmail() {
 
   namesSnapshot.forEach((docSnap) => {
     const data = docSnap.data();
-
-    if (data.email && data.name) {
-      employeeNamesByEmail[data.email.toLowerCase().trim()] = data.name;
-    }
+    if (data.email && data.name) employeeNamesByEmail[data.email.toLowerCase().trim()] = data.name;
   });
 
   return employeeNamesByEmail;
@@ -1979,7 +1702,6 @@ async function getEmployeeNamesByEmail() {
 
 function updateProfileUI(user) {
   const cleanEmail = user.email.toLowerCase().trim();
-
   welcomeText.innerHTML = currentUserName
     ? `Welcome, <span>${escapeHTML(currentUserName)}</span>`
     : `Welcome, <span>Add your name in profile</span>`;
@@ -1989,33 +1711,45 @@ function updateProfileUI(user) {
   profileEmailText.textContent = cleanEmail;
 }
 
+/* =========================
+   13. Date/time/math helper functions
+   ========================= */
+
+function openMenu() {
+  sideMenu.classList.remove("hidden");
+  menuOverlay.classList.remove("hidden");
+}
+
+function closeMenu() {
+  sideMenu.classList.add("hidden");
+  menuOverlay.classList.add("hidden");
+}
+
+function showPage(pageId) {
+  document.querySelectorAll(".app-page").forEach((page) => {
+    page.classList.add("hidden");
+    page.classList.remove("active-page");
+  });
+
+  const selectedPage = $(pageId);
+  if (selectedPage) {
+    selectedPage.classList.remove("hidden");
+    selectedPage.classList.add("active-page");
+  }
+
+  document.querySelectorAll(".menu-link").forEach((button) => {
+    button.classList.toggle("active-menu-link", button.dataset.page === pageId);
+  });
+}
+
 function emptyWeek() {
-  return {
-    Sunday: [],
-    Monday: [],
-    Tuesday: [],
-    Wednesday: [],
-    Thursday: [],
-    Friday: [],
-    Saturday: []
-  };
+  return { Sunday: [], Monday: [], Tuesday: [], Wednesday: [], Thursday: [], Friday: [], Saturday: [] };
 }
 
 function addPunchToDay(days, data, dateObj) {
-  const dayName = dateObj.toLocaleDateString("en-US", {
-    weekday: "long"
-  });
-
-  const timeText = dateObj.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
-
-  const sourceText =
-    data.source === "Admin Approved Time Edit" ||
-    data.source === "Admin Modified Punch"
-      ? "<br><small>Admin Edit</small>"
-      : "";
+  const dayName = dateObj.toLocaleDateString("en-US", { weekday: "long" });
+  const timeText = dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const sourceText = data.source === "Admin Approved Time Edit" || data.source === "Admin Modified Punch" ? "<br><small>Admin Edit</small>" : "";
 
   days[dayName].push({
     type: data.type,
@@ -2028,7 +1762,6 @@ function buildWeekTable(employeeName, days, totalMinutes, weekDates) {
   return `
     <div class="employee-card">
       <h3>${escapeHTML(employeeName)}</h3>
-
       <table class="week-table">
         <tr>
           ${createHeaderCell("Sunday", weekDates[0])}
@@ -2040,7 +1773,6 @@ function buildWeekTable(employeeName, days, totalMinutes, weekDates) {
           ${createHeaderCell("Saturday", weekDates[6])}
           <th>Total<br>Hours</th>
         </tr>
-
         <tr>
           ${createDayCell(days.Sunday)}
           ${createDayCell(days.Monday)}
@@ -2057,27 +1789,12 @@ function buildWeekTable(employeeName, days, totalMinutes, weekDates) {
 }
 
 function createHeaderCell(dayName, dateText = "") {
-  return `
-    <th>
-      <div>${dayName.slice(0, 3)}</div>
-      <small>${dateText}</small>
-    </th>
-  `;
+  return `<th><div>${dayName.slice(0, 3)}</div><small>${dateText}</small></th>`;
 }
 
 function createDayCell(punches) {
-  const punchText = punches.length
-    ? punches.map((punch) => punch.display).join("<br><br>")
-    : "—";
-
-  const dailyMinutes = calculateDailyMinutes(punches);
-
-  return `
-    <td>
-      ${punchText}
-      <div class="day-total">${formatMinutes(dailyMinutes)}</div>
-    </td>
-  `;
+  const punchText = punches.length ? punches.map((punch) => punch.display).join("<br><br>") : "—";
+  return `<td>${punchText}<div class="day-total">${formatMinutes(calculateDailyMinutes(punches))}</div></td>`;
 }
 
 function calculateDailyMinutes(punches) {
@@ -2085,9 +1802,7 @@ function calculateDailyMinutes(punches) {
   let workStartTime = null;
   let lunchStartTime = null;
 
-  const sortedPunches = [...punches].sort((a, b) => a.time - b.time);
-
-  sortedPunches.forEach((punch) => {
+  [...punches].sort((a, b) => a.time - b.time).forEach((punch) => {
     if (punch.type === "Clock In") {
       workStartTime = punch.time;
       lunchStartTime = null;
@@ -2115,33 +1830,21 @@ function calculateDailyMinutes(punches) {
 }
 
 function calculateWeeklyMinutes(days) {
-  let total = 0;
-
-  Object.values(days).forEach((punches) => {
-    total += calculateDailyMinutes(punches);
-  });
-
-  return total;
+  return Object.values(days).reduce((total, punches) => total + calculateDailyMinutes(punches), 0);
 }
 
 function calculateShiftMinutes(startTime, endTime) {
   if (!startTime || !endTime) return 0;
-
   const [startHour, startMinute] = startTime.split(":").map(Number);
   const [endHour, endMinute] = endTime.split(":").map(Number);
-
   const startTotal = startHour * 60 + startMinute;
   const endTotal = endHour * 60 + endMinute;
-
-  if (endTotal <= startTotal) return 0;
-
-  return endTotal - startTotal;
+  return endTotal <= startTotal ? 0 : endTotal - startTotal;
 }
 
 function formatMinutes(minutes) {
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
-
   return `${hours}h ${mins}m`;
 }
 
@@ -2149,45 +1852,26 @@ function getWeekDateRange(weekValue) {
   const [yearText, weekText] = weekValue.split("-W");
   const year = Number(yearText);
   const week = Number(weekText);
-
   const janFirst = new Date(year, 0, 1);
   janFirst.setHours(0, 0, 0, 0);
 
   const startOfWeek = new Date(janFirst);
   startOfWeek.setDate(janFirst.getDate() + (week - 1) * 7);
-
-  while (startOfWeek.getDay() !== 0) {
-    startOfWeek.setDate(startOfWeek.getDate() - 1);
-  }
-
+  while (startOfWeek.getDay() !== 0) startOfWeek.setDate(startOfWeek.getDate() - 1);
   startOfWeek.setHours(0, 0, 0, 0);
 
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 7);
-
+  const endOfWeek = addDays(startOfWeek, 7);
   return { startOfWeek, endOfWeek };
 }
 
 function getWeekDates(startOfWeek) {
-  const dates = [];
-
-  for (let i = 0; i < 7; i++) {
-    const currentDate = new Date(startOfWeek);
-    currentDate.setDate(startOfWeek.getDate() + i);
-    dates.push(formatDateShort(currentDate));
-  }
-
-  return dates;
+  return Array.from({ length: 7 }, (_, index) => formatDateShort(addDays(startOfWeek, index)));
 }
 
 function getStartOfWeek(dateObj) {
   const start = new Date(dateObj);
   start.setHours(0, 0, 0, 0);
-
-  while (start.getDay() !== 0) {
-    start.setDate(start.getDate() - 1);
-  }
-
+  while (start.getDay() !== 0) start.setDate(start.getDate() - 1);
   return start;
 }
 
@@ -2207,26 +1891,17 @@ function getWeekValueFromDate(dateObj) {
 
   const currentSunday = new Date(dateObj);
   currentSunday.setHours(0, 0, 0, 0);
-
-  while (currentSunday.getDay() !== 0) {
-    currentSunday.setDate(currentSunday.getDate() - 1);
-  }
+  while (currentSunday.getDay() !== 0) currentSunday.setDate(currentSunday.getDate() - 1);
 
   const firstSunday = new Date(startOfYear);
+  while (firstSunday.getDay() !== 0) firstSunday.setDate(firstSunday.getDate() - 1);
 
-  while (firstSunday.getDay() !== 0) {
-    firstSunday.setDate(firstSunday.getDate() - 1);
-  }
-
-  const weekNumber =
-    Math.floor((currentSunday - firstSunday) / 604800000) + 1;
-
+  const weekNumber = Math.floor((currentSunday - firstSunday) / 604800000) + 1;
   return `${dateObj.getFullYear()}-W${String(weekNumber).padStart(2, "0")}`;
 }
 
 function setCurrentWeek() {
   const currentWeek = getCurrentWeekValue();
-
   if (weekPicker) weekPicker.value = currentWeek;
   if (myWeekPicker) myWeekPicker.value = currentWeek;
   if (adminEditWeekPicker) adminEditWeekPicker.value = currentWeek;
@@ -2235,9 +1910,7 @@ function setCurrentWeek() {
 }
 
 function setTodayDate() {
-  const today = new Date();
-  const todayValue = formatDateInputValue(today);
-
+  const todayValue = formatDateInputValue(new Date());
   if (editDate) editDate.value = todayValue;
   if (scheduleDate) scheduleDate.value = todayValue;
   if (timeOffStartDate) timeOffStartDate.value = todayValue;
@@ -2248,7 +1921,6 @@ function formatDateInputValue(dateObj) {
   const yyyy = dateObj.getFullYear();
   const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
   const dd = String(dateObj.getDate()).padStart(2, "0");
-
   return `${yyyy}-${mm}-${dd}`;
 }
 
@@ -2256,16 +1928,12 @@ function formatDateShort(dateObj) {
   const mm = String(dateObj.getMonth() + 1).padStart(2, "0");
   const dd = String(dateObj.getDate()).padStart(2, "0");
   const yy = String(dateObj.getFullYear()).slice(-2);
-
   return `${mm}-${dd}-${yy}`;
 }
 
 function formatDateDisplay(dateValue) {
   if (!dateValue) return "Scheduled Day";
-
-  const dateObj = new Date(`${dateValue}T00:00`);
-
-  return dateObj.toLocaleDateString([], {
+  return new Date(`${dateValue}T00:00`).toLocaleDateString([], {
     weekday: "long",
     month: "short",
     day: "numeric",
@@ -2275,16 +1943,10 @@ function formatDateDisplay(dateValue) {
 
 function formatTimeFrom24Hour(timeValue) {
   if (!timeValue) return "";
-
   const [hoursText, minutesText] = timeValue.split(":");
   const date = new Date();
-
   date.setHours(Number(hoursText), Number(minutesText), 0, 0);
-
-  return date.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
 function getDatesBetween(startDate, endDate) {
@@ -2327,6 +1989,10 @@ function escapeHTML(value) {
     .replaceAll("'", "&#039;");
 }
 
+/* =========================
+   14. Login/logout state
+   ========================= */
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     authBox.classList.add("hidden");
@@ -2336,26 +2002,18 @@ onAuthStateChanged(auth, async (user) => {
     footerNote.classList.remove("hidden");
 
     const cleanEmail = user.email.toLowerCase().trim();
-
     currentUserName = await getEmployeeName(user.uid, cleanEmail);
     updateProfileUI(user);
 
-    const cleanAdminEmails = adminEmails.map((email) =>
-      email.toLowerCase().trim()
-    );
-
-    const isCurrentUserAdmin = cleanAdminEmails.includes(cleanEmail);
+    const isCurrentUserAdmin = adminEmails.map((email) => email.toLowerCase().trim()).includes(cleanEmail);
 
     if (isCurrentUserAdmin) {
       adminMenuLinks.classList.remove("hidden");
-      document.querySelectorAll(".admin-page").forEach((page) => {
-        page.classList.remove("admin-locked");
-      });
+      document.querySelectorAll(".admin-page").forEach((page) => page.classList.remove("admin-locked"));
+      await refreshEmployeeDropdown();
     } else {
       adminMenuLinks.classList.add("hidden");
-      document.querySelectorAll(".admin-page").forEach((page) => {
-        page.classList.add("admin-locked");
-      });
+      document.querySelectorAll(".admin-page").forEach((page) => page.classList.add("admin-locked"));
     }
 
     showPage("clockPage");
@@ -2385,5 +2043,6 @@ onAuthStateChanged(auth, async (user) => {
     editPunchModal.classList.add("hidden");
 
     currentUserName = "";
+    cachedEmployees = [];
   }
 });

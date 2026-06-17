@@ -1,3 +1,9 @@
+/*
+  DEMO TIMECARD - styles.css
+  Main purpose: controls the visual design, mobile layout, cards, buttons,
+  schedule calendar, admin schedule builder, and the employee dropdown.
+*/
+
 * {
   box-sizing: border-box;
 }
@@ -583,6 +589,35 @@ button.secondary {
 .compact-week-calendar .schedule-total-box {
   margin-top: 12px;
   text-align: center;
+}
+
+
+/* =========================
+   Schedule Builder Employee Dropdown
+   The dropdown replaces manual typing for employee name/email.
+   app.js still uses hidden email/name inputs for saving schedules.
+   ========================= */
+
+.schedule-employee-dropdown-wrap {
+  margin-top: 6px;
+}
+
+.employee-select,
+#scheduleEmployeeSelect {
+  width: 100%;
+  background: var(--white);
+  color: var(--text);
+  border: 1px solid #c9ccd1;
+  border-radius: 10px;
+  padding: 16px;
+  font-size: 16px;
+}
+
+.employee-select:focus,
+#scheduleEmployeeSelect:focus {
+  border-color: var(--black);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.12);
+  outline: none;
 }
 
 .schedule-week-grid {

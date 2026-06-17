@@ -1,4 +1,13 @@
 <!DOCTYPE html>
+<!--
+  DEMO TIMECARD - index.html
+  Main purpose: holds the app layout, menu, login/signup screens,
+  employee pages, and admin pages.
+
+  Dropdown update: the Schedule Builder now has scheduleEmployeeSelect.
+  The old scheduleEmployeeEmail and scheduleEmployeeName inputs are still
+  present as hidden fields because app.js uses them when saving schedules.
+-->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -246,11 +255,22 @@
           <h2>Schedule Builder</h2>
           <p class="muted">Select an employee and week. Existing shifts will show on each day to prevent double scheduling.</p>
 
-          <label for="scheduleEmployeeEmail">Employee Email:</label>
-          <input id="scheduleEmployeeEmail" type="email" placeholder="employee@email.com" />
+          <!--
+            Schedule employee dropdown
+            app.js fills this list from Firebase, then stores the selected
+            employee email/name into the hidden fields below.
+          -->
+          <label for="scheduleEmployeeSelect">Employee:</label>
+          <select id="scheduleEmployeeSelect" class="employee-select">
+            <option value="">Select employee...</option>
+          </select>
 
-          <label for="scheduleEmployeeName">Employee Name:</label>
-          <input id="scheduleEmployeeName" type="text" placeholder="Employee Name" />
+          <!--
+            Hidden backup fields used by app.js when posting/editing schedules.
+            Keeping these IDs prevents older schedule code from breaking.
+          -->
+          <input id="scheduleEmployeeEmail" type="hidden" />
+          <input id="scheduleEmployeeName" type="hidden" />
 
           <label for="adminScheduleBuilderWeekPicker">Choose Week:</label>
           <input id="adminScheduleBuilderWeekPicker" type="week" />
