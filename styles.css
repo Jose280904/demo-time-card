@@ -1107,3 +1107,85 @@ button.secondary {
     padding: 13px;
   }
 }
+
+/* FINAL MOBILE OVERHANG FIX */
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+
+body {
+  touch-action: pan-y;
+}
+
+.app-shell,
+.app-pages,
+.app-page,
+.page-inner,
+.home-dashboard,
+.card {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+}
+
+@media (max-width: 600px) {
+  .app-shell {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .card {
+    padding: 18px !important;
+  }
+
+  h2 {
+    font-size: 24px !important;
+    line-height: 1.15 !important;
+  }
+
+  .muted {
+    font-size: 17px !important;
+    line-height: 1.35 !important;
+  }
+
+  .clock-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  button {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    text-align: center !important;
+  }
+
+  input,
+  select,
+  textarea {
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .status-card,
+  .profile-info-box,
+  .selected-day-details,
+  .schedule-form-box,
+  .info-box {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-wrap: break-word !important;
+  }
+
+  #welcomeText {
+    font-size: 23px !important;
+  }
+
+  .logo {
+    max-width: 245px !important;
+  }
+}
